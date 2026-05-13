@@ -23,7 +23,9 @@
       "instanceName": "Yoghurt",
       "pricePerUnit": 165,
       "units": 13,
-      "purchaseDates": []
+      "purchaseDates": [
+        "2026-05-13"
+      ]
     },
     {
       "id": 3,

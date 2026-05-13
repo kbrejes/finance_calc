@@ -1002,3 +1002,32 @@ select.inline-input option {
   text-transform: uppercase;
   letter-spacing: 0.6px;
 }
+
+/* Purchase cost input styling */
+.purchase-cost {
+  position: absolute;
+  right: 4px;
+  font-size: 0.65rem;
+  padding: 2px 6px;
+  border-radius: 4px;
+  white-space: nowrap;
+  transition: all var(--transition-fast);
+}
+
+.purchase-cost.text-cyan {
+  background: rgba(99, 179, 237, 0.15);
+  color: var(--accent-cyan);
+  border: 1px solid rgba(99, 179, 237, 0.3);
+}
+
+.purchase-cost.text-muted {
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text-muted);
+  border: 1px dashed var(--border-glass);
+  cursor: text;
+}
+
+/* On hover of future cell with cost input prompt */
+.calendar-grid .cal-day.future:hover {
+  background: rgba(99, 179, 237, 0.08);
+}

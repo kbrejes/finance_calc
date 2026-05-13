@@ -1,0 +1,19 @@
+#!/usr/bin/expect -f
+
+set timeout 20
+set password "IgMPMJdJO8x0ZuZJ4pyK"
+set host "185.241.151.190"
+set user "root"
+
+spawn ssh-copy-id -i /Users/kirill/.ssh/id_ed25519.pub $user@$host
+expect {
+    "Are you sure you want to continue connecting" {
+        send "yes\r"
+        exp_continue
+    }
+    "password:" {
+        send "$password\r"
+        exp_continue
+    }
+    eof
+}
