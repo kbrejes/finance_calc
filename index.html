@@ -29,21 +29,21 @@
     <section class="tab-content active" id="tab-spending">
       <div class="glass-card">
       <div class="card-header">
-          <h3>Monthly Spending</h3>
-          <div style="display: flex; gap: 12px; align-items: center;">
-            <select id="spending-filter-category" class="inline-input" style="padding: 6px 10px; font-size: 0.9rem;" onchange="applySpendingFiltersAndSort()">
-              <option value="All">All Categories</option>
-            </select>
-            <select id="spending-sort" class="inline-input" style="padding: 6px 10px; font-size: 0.9rem;" onchange="applySpendingFiltersAndSort()">
-              <option value="name">Sort: Name</option>
-              <option value="price-asc">Sort: Price ↑</option>
-              <option value="price-desc">Sort: Price ↓</option>
-              <option value="category">Sort: Category</option>
-            </select>
-            <button class="btn btn-primary" onclick="openSpendingModal()" id="add-spending-btn">
-              + Add Item
-            </button>
-          </div>
+          <h3>Expenses</h3>
+          <button class="btn btn-primary btn-square" onclick="openSpendingModal()" id="add-spending-btn">
+            +
+          </button>
+        </div>
+        <div style="display: flex; gap: 12px; align-items: center; margin-bottom: var(--spacing-lg); flex-wrap: wrap;">
+          <select id="spending-filter-category" class="inline-input" style="padding: 6px 10px; font-size: 0.9rem;" onchange="applySpendingFiltersAndSort()">
+            <option value="All">All Categories</option>
+          </select>
+          <select id="spending-sort" class="inline-input" style="padding: 6px 10px; font-size: 0.9rem;" onchange="applySpendingFiltersAndSort()">
+            <option value="name">Sort: Name</option>
+            <option value="price-asc">Sort: Price ↑</option>
+            <option value="price-desc">Sort: Price ↓</option>
+            <option value="category">Sort: Category</option>
+          </select>
         </div>
         <div class="data-table-wrapper">
           <table class="data-table" id="spending-table">
@@ -69,8 +69,8 @@
       <div class="glass-card">
         <div class="card-header">
           <h3>ESL Students</h3>
-          <button class="btn btn-primary" onclick="openStudentModal()" id="add-student-btn">
-            + Add Student
+          <button class="btn btn-primary btn-square" onclick="openStudentModal()" id="add-student-btn">
+            +
           </button>
         </div>
         <div class="students-grid" id="students-grid"></div>

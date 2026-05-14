@@ -704,7 +704,7 @@ function openSpendingCalendarModal(itemId) {
     item.purchaseDates = [];
   }
   
-  document.getElementById('spending-calendar-modal-title').textContent = `${item.instanceName} Purchases`;
+  document.getElementById('spending-calendar-modal-title').textContent = `${item.instanceName}`;
   renderSpendingCalendar();
   document.getElementById('spending-calendar-modal').classList.add('active');
 }
