@@ -24,7 +24,18 @@
       "pricePerUnit": 165,
       "units": 13,
       "purchaseDates": [
-        "2026-05-13"
+        {
+          "date": "2026-05-13",
+          "cost": 110
+        },
+        {
+          "date": "2026-05-05",
+          "cost": 200
+        },
+        {
+          "date": "2026-05-11",
+          "cost": 165
+        }
       ]
     },
     {
@@ -35,7 +46,12 @@
       "instanceName": "Gas",
       "pricePerUnit": 100,
       "units": 15,
-      "purchaseDates": []
+      "purchaseDates": [
+        {
+          "date": "2026-05-13",
+          "cost": 100
+        }
+      ]
     },
     {
       "id": 4,

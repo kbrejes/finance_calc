@@ -5,6 +5,9 @@
 // ---------- State ----------
 let spending = [];
 let students = [];
+let pendingCostInputDate = null;
+let pendingCostInputItemId = null;
+let pendingCostInputIndex = null; // null = add, number = edit existing at index
 
 // ---------- DOM Ready ----------
 document.addEventListener('DOMContentLoaded', () => {
@@ -589,7 +592,8 @@ function renderSpendingCalendar() {
   for (let i = 1; i <= daysInMonth; i++) {
     const d = new Date(year, month, i);
     const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
-    const isAttended = item.purchaseDates && item.purchaseDates.includes(dateStr);
+    const purchase = item.purchaseDates && item.purchaseDates.find(p => (typeof p === 'string' ? p : p.date) === dateStr);
+    const isAttended = !!purchase;
     const isToday = d.toDateString() === today.toDateString();
     const isFuture = d > today && !isToday;
     
@@ -598,7 +602,12 @@ function renderSpendingCalendar() {
     if (isToday) classes += ' today';
     if (isFuture) classes += ' future';
     
-    html += `<div class="${classes}" onclick="togglePurchaseDate('${dateStr}')">${i}</div>`;
+    let title = '';
+    if (purchase && typeof purchase === 'object' && purchase.cost !== undefined) {
+      title = ` title="Cost: ${CURRENCY}${formatNum(purchase.cost)}"`;
+    }
+    
+    html += `<div class="${classes}"${title} onclick="togglePurchaseDate('${dateStr}')">${i}</div>`;
   }
   
   grid.innerHTML = html;
@@ -620,6 +629,10 @@ function renderSpendingCalendar() {
       <div>
         <span class="cal-stat-value text-cyan">~${Math.round(metrics.avgDays)}d</span>
         <span class="cal-stat-label">Avg Freq</span>
+      </div>
+      <div>
+        <span class="cal-stat-value">${CURRENCY}${formatNum(metrics.avgCostPerPurchase)}</span>
+        <span class="cal-stat-label">Avg Cost</span>
       </div>
       <div>
         <span class="cal-stat-value">${daysText}</span>
@@ -645,28 +658,18 @@ function togglePurchaseDate(dateStr) {
     item.purchaseDates = [];
   }
   
-  const idx = item.purchaseDates.indexOf(dateStr);
+  const idx = item.purchaseDates.findIndex(p => (typeof p === 'string' ? p : p.date) === dateStr);
   if (idx > -1) {
-    item.purchaseDates.splice(idx, 1);
+    // Purchase exists - open modal for editing
+    const purchase = item.purchaseDates[idx];
+    const cost = (typeof purchase === 'object' && purchase.cost !== undefined) ? purchase.cost : item.pricePerUnit;
+    openCostInputModal(dateStr, item.id, cost, idx);
   } else {
-    item.purchaseDates.push(dateStr);
-  }
-  
-  saveSpending(spending);
-  renderSpendingCalendar();
-  
-  // Update UI components
-  renderSpendingTable();
-  createSpendingChart('spending-chart', spending);
-  
-  // Dashboard might also change because total spending changed
-  if (document.getElementById('tab-dashboard').classList.contains('active')) {
-    createDashboardChart('dashboard-chart', spending, students);
-    renderDashboard();
-  } else {
-    renderBanner();
+    // New purchase - open modal for adding
+    openCostInputModal(dateStr, item.id, item.pricePerUnit, null);
   }
 }
+
 
 // ==========================================
 //  UTILITIES
@@ -689,5 +692,118 @@ document.addEventListener('click', (e) => {
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') {
     document.querySelectorAll('.modal-overlay.active').forEach(m => m.classList.remove('active'));
+  }
+});
+
+// ==========================================
+//  COST INPUT MODAL
+// ==========================================
+
+function openCostInputModal(dateStr, itemId, defaultCost, editIndex = null) {
+  pendingCostInputDate = dateStr;
+  pendingCostInputItemId = itemId;
+  pendingCostInputIndex = editIndex;
+  
+  // Format date for display
+  const date = new Date(dateStr + 'T00:00:00');
+  const options = { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' };
+  const formattedDate = date.toLocaleDateString('en-US', options);
+  
+  // Set title and button visibility based on add/edit mode
+  const isEdit = editIndex !== null;
+  document.getElementById('cost-input-modal-title').textContent = isEdit ? 'Edit Purchase' : 'Add Purchase';
+  document.getElementById('cost-delete-btn').style.display = isEdit ? 'block' : 'none';
+  
+  document.getElementById('cost-input-date').textContent = formattedDate;
+  document.getElementById('cost-input-field').value = defaultCost;
+  document.getElementById('cost-input-field').focus();
+  document.getElementById('cost-input-modal').classList.add('active');
+}
+
+function closeCostInputModal() {
+  document.getElementById('cost-input-modal').classList.remove('active');
+  pendingCostInputDate = null;
+  pendingCostInputItemId = null;
+  pendingCostInputIndex = null;
+}
+
+function confirmCostInput() {
+  if (!pendingCostInputDate || !pendingCostInputItemId) return;
+  
+  const item = spending.find(i => i.id === pendingCostInputItemId);
+  if (!item) {
+    closeCostInputModal();
+    return;
+  }
+  
+  if (!item.purchaseDates) {
+    item.purchaseDates = [];
+  }
+  
+  let cost = parseFloat(document.getElementById('cost-input-field').value);
+  if (isNaN(cost) || cost < 0) {
+    cost = item.pricePerUnit;
+  }
+  
+  const isEdit = pendingCostInputIndex !== null;
+  
+  if (isEdit) {
+    // Edit existing purchase
+    item.purchaseDates[pendingCostInputIndex] = { date: pendingCostInputDate, cost: cost };
+  } else {
+    // Add new purchase
+    item.purchaseDates.push({ date: pendingCostInputDate, cost: cost });
+  }
+  
+  closeCostInputModal();
+  saveSpending(spending);
+  renderSpendingCalendar();
+  
+  // Update UI components
+  renderSpendingTable();
+  createSpendingChart('spending-chart', spending);
+  
+  // Dashboard might also change because total spending changed
+  if (document.getElementById('tab-dashboard').classList.contains('active')) {
+    createDashboardChart('dashboard-chart', spending, students);
+    renderDashboard();
+  } else {
+    renderBanner();
+  }
+}
+
+function deleteCostInput() {
+  if (!pendingCostInputItemId || pendingCostInputIndex === null) return;
+  
+  const item = spending.find(i => i.id === pendingCostInputItemId);
+  if (!item || !item.purchaseDates) {
+    closeCostInputModal();
+    return;
+  }
+  
+  // Remove the purchase at the current index
+  item.purchaseDates.splice(pendingCostInputIndex, 1);
+  
+  closeCostInputModal();
+  saveSpending(spending);
+  renderSpendingCalendar();
+  
+  // Update UI components
+  renderSpendingTable();
+  createSpendingChart('spending-chart', spending);
+  
+  // Dashboard might also change because total spending changed
+  if (document.getElementById('tab-dashboard').classList.contains('active')) {
+    createDashboardChart('dashboard-chart', spending, students);
+    renderDashboard();
+  } else {
+    renderBanner();
+  }
+}
+
+// Allow Enter key to confirm cost input
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && document.getElementById('cost-input-modal').classList.contains('active')) {
+    confirmCostInput();
   }
 });

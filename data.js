@@ -108,7 +108,7 @@ function getCalculatedSpendingMetrics(item) {
 
   const now = new Date();
   // Sort dates oldest to newest
-  const dates = item.purchaseDates.map(d => new Date(d)).sort((a, b) => a - b);
+  const dates = item.purchaseDates.map(p => new Date(typeof p === 'string' ? p : p.date)).sort((a, b) => a - b);
   const firstDate = dates[0];
   const lastDate = dates[dates.length - 1];
 
@@ -126,7 +126,17 @@ function getCalculatedSpendingMetrics(item) {
   const daysUntilNext = Math.round((nextDateOnly - today) / (1000 * 60 * 60 * 24));
 
   const calcMonthlyUnits = 30.44 / avgDays;
-  const calcMonthlyCost = calcMonthlyUnits * item.pricePerUnit;
+
+  let totalCost = 0;
+  let count = 0;
+  for (const p of item.purchaseDates) {
+     if (typeof p === 'object' && p.cost !== undefined) {
+        totalCost += p.cost;
+        count++;
+     }
+  }
+  const avgCostPerPurchase = count > 0 ? (totalCost / count) : item.pricePerUnit;
+  const calcMonthlyCost = calcMonthlyUnits * avgCostPerPurchase;
 
   return {
     hasData: true,
@@ -134,7 +144,8 @@ function getCalculatedSpendingMetrics(item) {
     nextDate,
     daysUntilNext,
     calcMonthlyUnits,
-    calcMonthlyCost
+    calcMonthlyCost,
+    avgCostPerPurchase
   };
 }
 
