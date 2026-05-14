@@ -2,19 +2,19 @@
    Charts — Chart.js configuration & rendering
    ============================================ */
 
-// Chart.js global defaults
-Chart.defaults.color = '#8b95b0';
-Chart.defaults.borderColor = 'rgba(255,255,255,0.05)';
-Chart.defaults.font.family = "'Inter', sans-serif";
+// Chart.js global defaults — minimalist theme
+Chart.defaults.color = '#A1A1A1'; // text-secondary
+Chart.defaults.borderColor = '#2A2A2A'; // border
+Chart.defaults.font.family = "'Geist', -apple-system, BlinkMacSystemFont, sans-serif";
 Chart.defaults.font.size = 12;
 Chart.defaults.plugins.legend.labels.usePointStyle = true;
 Chart.defaults.plugins.legend.labels.pointStyleWidth = 10;
 Chart.defaults.plugins.legend.labels.padding = 16;
-Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(16, 21, 56, 0.95)';
-Chart.defaults.plugins.tooltip.borderColor = 'rgba(255,255,255,0.1)';
+Chart.defaults.plugins.tooltip.backgroundColor = 'rgba(20, 20, 20, 0.95)'; // bg-surface
+Chart.defaults.plugins.tooltip.borderColor = '#2A2A2A'; // border
 Chart.defaults.plugins.tooltip.borderWidth = 1;
-Chart.defaults.plugins.tooltip.cornerRadius = 8;
-Chart.defaults.plugins.tooltip.padding = 10;
+Chart.defaults.plugins.tooltip.cornerRadius = 4;
+Chart.defaults.plugins.tooltip.padding = 12;
 Chart.defaults.plugins.tooltip.titleFont = { weight: '600', size: 13 };
 Chart.defaults.plugins.tooltip.bodyFont = { size: 12 };
 
@@ -30,15 +30,15 @@ function createSpendingChart(canvasId, spending) {
   const labels = getMonthLabels(6);
   const data = projectSpending(totalMonthly, 6);
 
-  // Category breakdown for stacked effect
+  // Category breakdown for stacked effect — minimalist palette
   const catTotals = calcCategoryTotals(spending);
   const catColors = {
-    Housing: '#63b3ed',
-    Food: '#f472b6',
-    Transport: '#fbbf24',
-    Subscriptions: '#a78bfa',
-    Personal: '#34d399',
-    Other: '#8b95b0',
+    Housing: '#06B6D4',   // accent
+    Food: '#10B981',      // success
+    Transport: '#F59E0B', // warning
+    Subscriptions: '#8B5CF6',  // purple
+    Personal: '#EC4899',  // pink
+    Other: '#A1A1A1',     // text-secondary
   };
 
   const datasets = Object.entries(catTotals).map(([cat, total]) => {
@@ -102,8 +102,8 @@ function createIncomeChart(canvasId, students) {
         {
           label: 'Best Case',
           data: proj.max,
-          borderColor: 'rgba(52, 211, 153, 0.3)',
-          backgroundColor: 'rgba(52, 211, 153, 0.05)',
+          borderColor: 'rgba(16, 185, 129, 0.3)',
+          backgroundColor: 'rgba(16, 185, 129, 0.05)',
           fill: '+1',
           borderWidth: 1,
           borderDash: [4, 4],
@@ -113,21 +113,21 @@ function createIncomeChart(canvasId, students) {
         {
           label: 'Expected',
           data: proj.expected,
-          borderColor: '#63b3ed',
-          backgroundColor: 'rgba(99, 179, 237, 0.08)',
+          borderColor: '#06B6D4',
+          backgroundColor: 'rgba(6, 182, 212, 0.08)',
           fill: false,
           borderWidth: 2.5,
           pointRadius: 4,
-          pointBackgroundColor: '#63b3ed',
-          pointBorderColor: '#0a0e27',
+          pointBackgroundColor: '#06B6D4',
+          pointBorderColor: '#0A0A0A',
           pointBorderWidth: 2,
           tension: 0.3,
         },
         {
           label: 'Worst Case',
           data: proj.min,
-          borderColor: 'rgba(248, 113, 113, 0.3)',
-          backgroundColor: 'rgba(248, 113, 113, 0.05)',
+          borderColor: 'rgba(239, 68, 68, 0.3)',
+          backgroundColor: 'rgba(239, 68, 68, 0.05)',
           fill: '-1',
           borderWidth: 1,
           borderDash: [4, 4],
@@ -182,33 +182,33 @@ function createDashboardChart(canvasId, spending, students) {
         {
           label: 'Income (Expected)',
           data: incomeProj.expected,
-          borderColor: '#34d399',
-          backgroundColor: 'rgba(52, 211, 153, 0.08)',
+          borderColor: '#10B981',
+          backgroundColor: 'rgba(16, 185, 129, 0.08)',
           fill: true,
           borderWidth: 2.5,
           pointRadius: 4,
-          pointBackgroundColor: '#34d399',
-          pointBorderColor: '#0a0e27',
+          pointBackgroundColor: '#10B981',
+          pointBorderColor: '#0A0A0A',
           pointBorderWidth: 2,
           tension: 0.3,
         },
         {
           label: 'Spending',
           data: spendingProj,
-          borderColor: '#f87171',
-          backgroundColor: 'rgba(248, 113, 113, 0.06)',
+          borderColor: '#EF4444',
+          backgroundColor: 'rgba(239, 68, 68, 0.06)',
           fill: true,
           borderWidth: 2.5,
           pointRadius: 4,
-          pointBackgroundColor: '#f87171',
-          pointBorderColor: '#0a0e27',
+          pointBackgroundColor: '#EF4444',
+          pointBorderColor: '#0A0A0A',
           pointBorderWidth: 2,
           tension: 0.3,
         },
         {
           label: 'Income (Worst Case)',
           data: incomeProj.min,
-          borderColor: 'rgba(251, 191, 36, 0.4)',
+          borderColor: 'rgba(245, 158, 11, 0.4)',
           borderWidth: 1,
           borderDash: [5, 5],
           pointRadius: 0,

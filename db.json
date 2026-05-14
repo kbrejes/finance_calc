@@ -6,13 +6,25 @@
       "category": "Housing",
       "isEssential": true,
       "instanceName": "Rent",
-      "pricePerUnit": 8000,
+      "pricePerUnit": 0,
       "units": 1,
       "purchaseDates": [
-        "2026-05-02",
-        "2026-04-02",
-        "2026-03-02",
-        "2026-02-02"
+        {
+          "date": "2026-05-02",
+          "cost": 8200
+        },
+        {
+          "date": "2026-04-02",
+          "cost": 8000
+        },
+        {
+          "date": "2026-03-02",
+          "cost": 8000
+        },
+        {
+          "date": "2026-02-02",
+          "cost": 8000
+        }
       ]
     },
     {
@@ -21,20 +33,12 @@
       "category": "Food",
       "isEssential": true,
       "instanceName": "Yoghurt",
-      "pricePerUnit": 165,
-      "units": 13,
+      "pricePerUnit": 0,
+      "units": 1,
       "purchaseDates": [
         {
           "date": "2026-05-13",
-          "cost": 110
-        },
-        {
-          "date": "2026-05-05",
-          "cost": 200
-        },
-        {
-          "date": "2026-05-11",
-          "cost": 165
+          "cost": 115
         }
       ]
     },
@@ -44,24 +48,14 @@
       "category": "Transport",
       "isEssential": true,
       "instanceName": "Gas",
-      "pricePerUnit": 100,
-      "units": 15,
+      "pricePerUnit": 0,
+      "units": 1,
       "purchaseDates": [
         {
           "date": "2026-05-13",
-          "cost": 100
+          "cost": 50
         }
       ]
-    },
-    {
-      "id": 4,
-      "className": "Oil",
-      "category": "Transport",
-      "isEssential": true,
-      "instanceName": "Oil",
-      "pricePerUnit": 300,
-      "units": 1,
-      "purchaseDates": []
     },
     {
       "id": 5,
@@ -69,10 +63,13 @@
       "category": "Personal",
       "isEssential": true,
       "instanceName": "Phone Plan",
-      "pricePerUnit": 550,
+      "pricePerUnit": 0,
       "units": 1,
       "purchaseDates": [
-        "2026-05-02",
+        {
+          "date": "2026-05-02",
+          "cost": 550
+        },
         "2026-04-02",
         "2026-03-02"
       ]
@@ -83,28 +80,28 @@
       "category": "Food",
       "isEssential": true,
       "instanceName": "30x eggs",
-      "pricePerUnit": 125,
-      "units": 9,
+      "pricePerUnit": 0,
+      "units": 1,
       "purchaseDates": []
     },
     {
       "id": 7,
-      "className": "Bananas",
+      "className": "Fruit",
       "category": "Food",
       "isEssential": true,
-      "instanceName": "Bananas",
-      "pricePerUnit": 15,
-      "units": 20,
+      "instanceName": "Fruit",
+      "pricePerUnit": 0,
+      "units": 1,
       "purchaseDates": []
     },
     {
       "id": 8,
-      "className": "Chechevitsa, pasta, grechka 3kg",
+      "className": "Carbs (rice, beans, pasta, buckwheat)",
       "category": "Food",
       "isEssential": true,
-      "instanceName": "Chechevitsa, pasta, grechka 3kg",
-      "pricePerUnit": 220,
-      "units": 2.5,
+      "instanceName": "Carbs (rice, beans, pasta, buckwheat)",
+      "pricePerUnit": 0,
+      "units": 1,
       "purchaseDates": []
     },
     {
@@ -113,8 +110,8 @@
       "category": "Food",
       "isEssential": true,
       "instanceName": "8 x water",
-      "pricePerUnit": 60,
-      "units": 15,
+      "pricePerUnit": 0,
+      "units": 1,
       "purchaseDates": []
     },
     {
@@ -123,38 +120,18 @@
       "category": "Food",
       "isEssential": true,
       "instanceName": "500g coffee",
-      "pricePerUnit": 280,
-      "units": 2.5,
+      "pricePerUnit": 0,
+      "units": 1,
       "purchaseDates": []
     },
     {
       "id": 11,
-      "className": "1kg veggies",
+      "className": "Veggies",
       "category": "Food",
       "isEssential": true,
-      "instanceName": "1kg veggies",
-      "pricePerUnit": 50,
-      "units": 5,
-      "purchaseDates": []
-    },
-    {
-      "id": 12,
-      "className": "Tooth paste",
-      "category": "Food",
-      "isEssential": true,
-      "instanceName": "Tooth paste",
-      "pricePerUnit": 105,
-      "units": 1.5,
-      "purchaseDates": []
-    },
-    {
-      "id": 13,
-      "className": "Shampoo",
-      "category": "Food",
-      "isEssential": true,
-      "instanceName": "Shampoo",
-      "pricePerUnit": 110,
-      "units": 1.5,
+      "instanceName": "Veggies",
+      "pricePerUnit": 0,
+      "units": 1,
       "purchaseDates": []
     }
   ],
@@ -175,11 +152,6 @@
       "id": 3,
       "name": "Alex Averyanov",
       "lessonPrice": 650
-    },
-    {
-      "id": 4,
-      "name": "Bela",
-      "lessonPrice": 150
     }
   ]
 }

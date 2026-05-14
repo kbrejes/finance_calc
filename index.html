@@ -9,49 +9,47 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
 </head>
 <body>
-  <div class="app-container">
+  <div class="app-container">    <!-- ===== DASHBOARD BANNER ===== -->
 
-    <!-- ===== DASHBOARD BANNER ===== -->
-    <div class="dashboard-banner" id="dashboard-banner">
-      <div class="banner-status status-good" id="banner-status">✓</div>
-      <div class="banner-info" id="banner-info">
-        <h2>Loading...</h2>
-        <p>Calculating your finances</p>
-      </div>
-      <div class="banner-stats" id="banner-stats"></div>
-    </div>
 
     <!-- ===== TABS ===== -->
     <nav class="tab-nav" id="tab-nav">
       <button class="tab-btn active" data-tab="spending" id="tab-btn-spending">
-        <span class="tab-icon">💸</span><span class="tab-label">Spending</span>
+        <span class="tab-label">Spending</span>
       </button>
       <button class="tab-btn" data-tab="earnings" id="tab-btn-earnings">
-        <span class="tab-icon">👨‍🏫</span><span class="tab-label">Earnings</span>
+        <span class="tab-label">Earnings</span>
       </button>
       <button class="tab-btn" data-tab="dashboard" id="tab-btn-dashboard">
-        <span class="tab-icon">📊</span><span class="tab-label">Dashboard</span>
+        <span class="tab-label">Dashboard</span>
       </button>
     </nav>
 
     <!-- ===== TAB: SPENDING ===== -->
     <section class="tab-content active" id="tab-spending">
       <div class="glass-card">
-        <div class="card-header">
-          <h3><span class="icon">💸</span> Monthly Spending</h3>
-          <button class="btn btn-primary" onclick="openSpendingModal()" id="add-spending-btn">
-            + Add Item
-          </button>
+      <div class="card-header">
+          <h3>Monthly Spending</h3>
+          <div style="display: flex; gap: 12px; align-items: center;">
+            <select id="spending-filter-category" class="inline-input" style="padding: 6px 10px; font-size: 0.9rem;" onchange="applySpendingFiltersAndSort()">
+              <option value="All">All Categories</option>
+            </select>
+            <select id="spending-sort" class="inline-input" style="padding: 6px 10px; font-size: 0.9rem;" onchange="applySpendingFiltersAndSort()">
+              <option value="name">Sort: Name</option>
+              <option value="price-asc">Sort: Price ↑</option>
+              <option value="price-desc">Sort: Price ↓</option>
+              <option value="category">Sort: Category</option>
+            </select>
+            <button class="btn btn-primary" onclick="openSpendingModal()" id="add-spending-btn">
+              + Add Item
+            </button>
+          </div>
         </div>
         <div class="data-table-wrapper">
           <table class="data-table" id="spending-table">
             <thead>
               <tr>
                 <th>Class</th>
-                <th>Instance</th>
-                <th class="text-right">Price</th>
-                <th class="text-right">Units/Mo</th>
-                <th class="text-right">Total</th>
                 <th style="width:70px"></th>
               </tr>
             </thead>
@@ -70,7 +68,7 @@
     <section class="tab-content" id="tab-earnings">
       <div class="glass-card">
         <div class="card-header">
-          <h3><span class="icon">👨‍🏫</span> ESL Students</h3>
+          <h3>ESL Students</h3>
           <button class="btn btn-primary" onclick="openStudentModal()" id="add-student-btn">
             + Add Student
           </button>
@@ -89,25 +87,21 @@
       <!-- Summary Cards -->
       <div class="summary-grid">
         <div class="summary-card">
-          <div class="card-icon">💰</div>
-          <div class="card-value text-green" id="dash-income">—</div>
           <div class="card-label">Expected Income</div>
+          <div class="card-value text-green" id="dash-income">—</div>
           <div class="text-muted" style="font-size:0.75rem;margin-top:4px" id="dash-income-range"></div>
         </div>
         <div class="summary-card">
-          <div class="card-icon">🧾</div>
-          <div class="card-value text-red" id="dash-spending">—</div>
           <div class="card-label">Monthly Spending</div>
+          <div class="card-value text-red" id="dash-spending">—</div>
         </div>
         <div class="summary-card">
-          <div class="card-icon">📈</div>
-          <div class="card-value" id="dash-balance">—</div>
           <div class="card-label">Net Balance</div>
+          <div class="card-value" id="dash-balance">—</div>
         </div>
         <div class="summary-card">
-          <div class="card-icon">👥</div>
-          <div class="card-value text-cyan" id="dash-students">—</div>
           <div class="card-label">Active Students</div>
+          <div class="card-value text-cyan" id="dash-students">—</div>
           <div class="text-muted" style="font-size:0.75rem;margin-top:4px"><span id="dash-items">—</span> expense items</div>
         </div>
       </div>
@@ -115,7 +109,7 @@
       <!-- Chart -->
       <div class="glass-card">
         <div class="card-header">
-          <h3><span class="icon">📊</span> Income vs Spending Projection</h3>
+          <h3>Income vs Spending Projection</h3>
         </div>
         <div class="chart-container" style="margin-top:0">
           <canvas id="dashboard-chart" height="300"></canvas>
@@ -125,7 +119,7 @@
       <!-- Recommendation -->
       <div class="glass-card recommendation-card rec-good mt-24" id="recommendation-card">
         <div class="card-header">
-          <h3><span class="icon">💡</span> Recommendation</h3>
+          <h3>Recommendation</h3>
         </div>
         <div class="recommendation-text" id="recommendation-text">
           <p>Calculating...</p>
@@ -140,7 +134,7 @@
   <!-- Spending Modal -->
   <div class="modal-overlay" id="spending-modal">
     <div class="modal-content" style="max-width: 500px;">
-      <h3 id="spending-modal-title">➕ Add Spending Item</h3>
+      <h3 id="spending-modal-title">Add Spending Item</h3>
       <form id="spending-form" onsubmit="handleSpendingSubmit(event)">
         
         <h4 style="margin-bottom: 8px; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">Class Properties</h4>
@@ -148,12 +142,12 @@
           <div class="form-group">
             <label for="sp-category">Category</label>
             <select class="inline-input" name="sp-category" id="sp-category">
-              <option value="Housing">🏠 Housing</option>
-              <option value="Food">🍜 Food</option>
-              <option value="Transport">🚕 Transport</option>
-              <option value="Subscriptions">📱 Subscriptions</option>
-              <option value="Personal">🧑 Personal</option>
-              <option value="Other">📦 Other</option>
+              <option value="Housing">Housing</option>
+              <option value="Food">Food</option>
+              <option value="Transport">Transport</option>
+              <option value="Subscriptions">Subscriptions</option>
+              <option value="Personal">Personal</option>
+              <option value="Other">Other</option>
             </select>
           </div>
           <div class="form-group">
@@ -168,22 +162,6 @@
           <label for="sp-class-name">Class Name</label>
           <input class="inline-input" type="text" name="sp-class-name" id="sp-class-name" placeholder="e.g. Yoghurt" required>
         </div>
-
-        <h4 style="margin-top: 20px; margin-bottom: 8px; color: var(--text-primary); border-bottom: 1px solid var(--border-color); padding-bottom: 4px;">Instance Properties</h4>
-        <div class="form-group">
-          <label for="sp-instance-name">Instance Name</label>
-          <input class="inline-input" type="text" name="sp-instance-name" id="sp-instance-name" placeholder="e.g. Meiji greek yoghurt 1 kg" required>
-        </div>
-        <div class="form-row">
-          <div class="form-group">
-            <label for="sp-price">Price (฿)</label>
-            <input class="inline-input" type="number" name="sp-price" id="sp-price" placeholder="0" min="0" step="1" required>
-          </div>
-          <div class="form-group">
-            <label for="sp-units">Units per Month</label>
-            <input class="inline-input" type="number" name="sp-units" id="sp-units" placeholder="1" min="0.5" step="0.5" value="1" required>
-          </div>
-        </div>
         
         <div class="form-actions" style="margin-top: 24px;">
           <button type="button" class="btn btn-ghost" onclick="closeSpendingModal()">Cancel</button>
@@ -196,7 +174,7 @@
   <!-- Student Modal -->
   <div class="modal-overlay" id="student-modal">
     <div class="modal-content">
-      <h3 id="student-modal-title">➕ Add Student</h3>
+      <h3 id="student-modal-title">Add Student</h3>
       <form id="student-form" onsubmit="handleStudentSubmit(event)">
         <div class="form-group">
           <label for="st-name">Student Name</label>
@@ -219,7 +197,7 @@
   <!-- Attendance Calendar Modal -->
   <div class="modal-overlay" id="calendar-modal">
     <div class="modal-content" style="max-width:420px">
-      <h3 id="calendar-modal-title">📅 Attendance</h3>
+      <h3 id="calendar-modal-title">Attendance</h3>
       <div class="calendar-nav">
         <button class="btn-icon" onclick="calendarPrevMonth()" id="cal-prev">◀</button>
         <span class="calendar-month-label" id="cal-month-label">May 2026</span>
@@ -236,7 +214,7 @@
   <!-- Spending Calendar Modal -->
   <div class="modal-overlay" id="spending-calendar-modal">
     <div class="modal-content" style="max-width:420px">
-      <h3 id="spending-calendar-modal-title">📅 Purchase History</h3>
+      <h3 id="spending-calendar-modal-title">Purchase History</h3>
       <div class="calendar-nav">
         <button class="btn-icon" onclick="spendingCalendarPrevMonth()" id="sp-cal-prev">◀</button>
         <span class="calendar-month-label" id="sp-cal-month-label">May 2026</span>
@@ -246,6 +224,18 @@
       <div class="calendar-stats" id="spending-calendar-stats"></div>
       <div class="form-actions">
         <button type="button" class="btn btn-ghost" onclick="closeSpendingCalendarModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Delete Confirmation Modal -->
+  <div class="modal-overlay" id="delete-confirm-modal">
+    <div class="modal-content" style="max-width:300px">
+      <h3>Delete Item</h3>
+      <p id="delete-confirm-text" style="margin: 16px 0; color: var(--text-secondary);"></p>
+      <div class="form-actions">
+        <button type="button" class="btn btn-ghost" onclick="closeDeleteConfirm()">Cancel</button>
+        <button type="button" class="btn btn-danger" onclick="confirmDelete()">Delete</button>
       </div>
     </div>
   </div>

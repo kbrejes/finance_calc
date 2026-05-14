@@ -9,6 +9,11 @@ let pendingCostInputDate = null;
 let pendingCostInputItemId = null;
 let pendingCostInputIndex = null; // null = add, number = edit existing at index
 
+// Spending filter/sort state
+let spendingFilterCategory = 'All';
+let spendingSortBy = 'name'; // 'name', 'price-asc', 'price-desc', 'category'
+let pendingDeleteId = null; // for delete confirmation
+
 // ---------- DOM Ready ----------
 document.addEventListener('DOMContentLoaded', () => {
   initTabs();
@@ -16,6 +21,42 @@ document.addEventListener('DOMContentLoaded', () => {
   // Fetch persisted data from server, then re-render
   initDataFromServer();
 });
+
+// ---------- Clean up stale manual price/units data ----------
+function cleanupStaleSpendingData() {
+  let hasChanges = false;
+  for (const item of spending) {
+    // If item has calendar data (2+ entries), zero out manual price/units
+    if (item.purchaseDates && item.purchaseDates.length >= 2) {
+      if (item.pricePerUnit !== 0 || item.units !== 1) {
+        item.pricePerUnit = 0;
+        item.units = 1;
+        hasChanges = true;
+      }
+    }
+  }
+  if (hasChanges) {
+    saveSpending(spending);
+  }
+}
+
+// ---------- Clean up stale manual price/units data ----------
+function cleanupStaleSpendingData() {
+  let hasChanges = false;
+  for (const item of spending) {
+    // If item has calendar data, zero out manual price/units
+    if (item.purchaseDates && item.purchaseDates.length >= 2) {
+      if (item.pricePerUnit !== 0 || item.units !== 1) {
+        item.pricePerUnit = 0;
+        item.units = 1;
+        hasChanges = true;
+      }
+    }
+  }
+  if (hasChanges) {
+    saveSpending(spending);
+  }
+}
 
 // ---------- Tab Navigation ----------
 function initTabs() {
@@ -50,52 +91,127 @@ function renderAll() {
 }
 
 // ==========================================
+//  SPENDING FILTERS & SORTING
+// ==========================================
+
+function initSpendingFilters() {
+  // Populate category filter dropdown
+  const filterSelect = document.getElementById('spending-filter-category');
+  if (!filterSelect) return;
+
+  // Get unique categories
+  const categories = ['All', ...new Set(spending.map(s => s.category))];
+  const currentValue = filterSelect.value;
+  
+  // Rebuild options
+  filterSelect.innerHTML = '';
+  categories.forEach(cat => {
+    const opt = document.createElement('option');
+    opt.value = cat;
+    opt.textContent = cat === 'All' ? 'All Categories' : cat;
+    filterSelect.appendChild(opt);
+  });
+  
+  filterSelect.value = currentValue || 'All';
+  spendingFilterCategory = currentValue || 'All';
+}
+
+function applySpendingFiltersAndSort() {
+  const filterSelect = document.getElementById('spending-filter-category');
+  const sortSelect = document.getElementById('spending-sort');
+  
+  if (filterSelect) spendingFilterCategory = filterSelect.value;
+  if (sortSelect) spendingSortBy = sortSelect.value;
+  
+  renderSpendingTable();
+}
+
+function getFilteredAndSortedSpending() {
+  // Filter
+  let filtered = spending;
+  if (spendingFilterCategory !== 'All') {
+    filtered = spending.filter(item => item.category === spendingFilterCategory);
+  }
+  
+  // Sort
+  const sorted = [...filtered];
+  switch (spendingSortBy) {
+    case 'name':
+      sorted.sort((a, b) => a.className.localeCompare(b.className));
+      break;
+    case 'price-asc':
+      sorted.sort((a, b) => calcItemTotal(a) - calcItemTotal(b));
+      break;
+    case 'price-desc':
+      sorted.sort((a, b) => calcItemTotal(b) - calcItemTotal(a));
+      break;
+    case 'category':
+      sorted.sort((a, b) => a.category.localeCompare(b.category) || a.className.localeCompare(b.className));
+      break;
+  }
+  
+  return sorted;
+}
+
+// ==========================================
 //  SPENDING TABLE
 // ==========================================
 
 function renderSpendingTable() {
+  initSpendingFilters();
   const tbody = document.getElementById('spending-tbody');
   if (!tbody) return;
 
-  let html = '';
-  let grandTotal = 0;
+  const items = getFilteredAndSortedSpending();
 
-  for (const item of spending) {
+  let html = '';
+  let filteredTotal = 0;
+
+  for (const item of items) {
     const total = calcItemTotal(item);
-    grandTotal += total;
-    const icon = CATEGORY_ICONS[item.category] || '📦';
+    filteredTotal += total;
+    const icon = CATEGORY_ICONS[item.category] || '○';
     const metrics = getCalculatedSpendingMetrics(item);
     const hasData = metrics.hasData;
     
-    let itemNameHtml = escHtml(item.instanceName);
+    const calcPrice = hasData ? `<span title="Calculated from history">${CURRENCY}${formatNum(total)} <span style="font-size:0.7em">●</span></span>` : `${CURRENCY}${formatNum(total)}`;
+    
+    let predictionHtml = '';
     if (hasData && metrics.daysUntilNext !== null) {
       const daysText = metrics.daysUntilNext < 0 ? `Overdue by ${Math.abs(metrics.daysUntilNext)}d` : `Next in ${metrics.daysUntilNext}d`;
-      itemNameHtml += `<div class="spending-prediction text-muted" style="font-size:0.75rem; margin-top:2px;">📅 ${daysText}</div>`;
+      predictionHtml = `<div class="spending-prediction text-muted" style="font-size:0.75rem; margin-top:2px;">● ${daysText}</div>`;
     }
 
     const essentialBadge = item.isEssential ? ' <span style="font-size: 0.7rem; background: #2f855a; color: white; padding: 2px 6px; border-radius: 4px; margin-left: 4px;">Essential</span>' : '';
 
     html += `
-      <tr data-id="${item.id}">
-        <td><span class="category-badge">${icon} ${escHtml(item.className)}</span>${essentialBadge}</td>
-        <td>${itemNameHtml}</td>
-        <td class="text-right">${CURRENCY}${formatNum(item.pricePerUnit)}</td>
-        <td class="text-right">${hasData ? `<span title="Calculated from history">${metrics.calcMonthlyUnits.toFixed(1)} <span style="font-size:0.7em">📅</span></span>` : item.units}</td>
-        <td class="text-right total-cell">${hasData ? `<span title="Calculated from history">${CURRENCY}${formatNum(total)} <span style="font-size:0.7em">📅</span></span>` : `${CURRENCY}${formatNum(total)}`}</td>
+      <tr data-id="${item.id}" class="spending-row" onclick="openSpendingCalendarModal(${item.id})" style="cursor: pointer;">
         <td>
-          <div class="actions-cell">
-            <button class="btn-icon" onclick="openSpendingCalendarModal(${item.id})" title="Purchase History">📅</button>
-            <button class="btn-icon" onclick="editSpendingItem(${item.id})" title="Edit">✏️</button>
-            <button class="btn-icon delete" onclick="deleteSpendingItem(${item.id})" title="Delete">🗑️</button>
+          <span class="category-badge">${icon} ${escHtml(item.className)}, ${calcPrice}</span>${essentialBadge}
+          ${predictionHtml}
+        </td>
+        <td>
+          <div class="actions-cell" onclick="event.stopPropagation();">
+            <button class="btn-icon" onclick="editSpendingItem(${item.id})" title="Edit">✎</button>
+            <button class="btn-icon delete" onclick="confirmDeleteSpendingItem(${item.id})" title="Delete">×</button>
           </div>
         </td>
       </tr>`;
   }
 
+  // Calculate grand total (all spending, not filtered)
+  let grandTotal = 0;
+  for (const item of spending) {
+    grandTotal += calcItemTotal(item);
+  }
+
+  const totalDisplay = spendingFilterCategory !== 'All' 
+    ? `Filtered Total: <span class="text-red">${CURRENCY}${formatNum(filteredTotal)}</span> / All: <span class="text-red">${CURRENCY}${formatNum(grandTotal)}</span>`
+    : `Total Monthly Spending: <span class="text-red">${CURRENCY}${formatNum(grandTotal)}</span>`;
+
   html += `
     <tr class="grand-total-row">
-      <td colspan="4" class="text-right">Total Monthly Spending</td>
-      <td class="text-right text-red">${CURRENCY}${formatNum(grandTotal)}</td>
+      <td class="text-right">${totalDisplay}</td>
       <td></td>
     </tr>`;
 
@@ -108,11 +224,43 @@ function renderSpendingTable() {
   renderBanner();
 }
 
-function deleteSpendingItem(id) {
-  spending = spending.filter(i => i.id !== id);
-  saveSpending(spending);
-  renderSpendingTable();
-  createSpendingChart('spending-chart', spending);
+function confirmDeleteSpendingItem(id) {
+  window.pendingDeleteType = null;
+  window.pendingDeleteId = null;
+  const item = spending.find(i => i.id === id);
+  if (!item) return;
+  
+  pendingDeleteId = id;
+  const modal = document.getElementById('delete-confirm-modal');
+  const text = document.getElementById('delete-confirm-text');
+  text.textContent = `Are you sure you want to delete "${escHtml(item.className)}"? This cannot be undone.`;
+  modal.classList.add('active');
+}
+
+function closeDeleteConfirm() {
+  document.getElementById('delete-confirm-modal').classList.remove('active');
+  pendingDeleteId = null;
+  window.pendingDeleteId = null;
+  window.pendingDeleteType = null;
+}
+
+function confirmDelete() {
+    var id = pendingDeleteId !== null ? pendingDeleteId : window.pendingDeleteId;
+  if (id === null) return;
+  pendingDeleteId = id;
+  
+  if (window.pendingDeleteType === 'student') {
+    deleteStudent(pendingDeleteId);
+  } else {
+    spending = spending.filter(i => i.id !== pendingDeleteId);
+    saveSpending(spending);
+    renderSpendingTable();
+    createSpendingChart('spending-chart', spending);
+  }
+  
+  closeDeleteConfirm();
+  window.pendingDeleteId = null;
+  window.pendingDeleteType = null;
 }
 
 function editSpendingItem(id) {
@@ -127,15 +275,12 @@ function openSpendingModal(existing = null) {
   const form = document.getElementById('spending-form');
   const title = document.getElementById('spending-modal-title');
 
-  title.textContent = existing ? '✏️ Edit Item' : '➕ Add Spending Item';
+  title.textContent = existing ? 'Edit Item' : 'Add Spending Item';
   form.dataset.editId = existing ? existing.id : '';
 
   form.elements['sp-category'].value = existing ? existing.category : 'Food';
   form.elements['sp-essential'].value = existing ? (existing.isEssential ? 'true' : 'false') : 'true';
   form.elements['sp-class-name'].value = existing ? existing.className : '';
-  form.elements['sp-instance-name'].value = existing ? existing.instanceName : '';
-  form.elements['sp-price'].value = existing ? existing.pricePerUnit : '';
-  form.elements['sp-units'].value = existing ? existing.units : 1;
 
   modal.classList.add('active');
   setTimeout(() => form.elements['sp-class-name'].focus(), 100);
@@ -150,22 +295,23 @@ function handleSpendingSubmit(e) {
   const form = e.target;
   const editId = form.dataset.editId ? parseInt(form.dataset.editId) : null;
 
+  const className = form.elements['sp-class-name'].value.trim();
+  if (!className) return;
+
   const data = {
     category: form.elements['sp-category'].value,
     isEssential: form.elements['sp-essential'].value === 'true',
-    className: form.elements['sp-class-name'].value.trim(),
-    instanceName: form.elements['sp-instance-name'].value.trim(),
-    pricePerUnit: parseFloat(form.elements['sp-price'].value) || 0,
-    units: parseFloat(form.elements['sp-units'].value) || 1,
+    className: className,
+    instanceName: className, // instance equals class for new UI
+    pricePerUnit: editId ? spending.find(i => i.id === editId)?.pricePerUnit || 0 : 0,
+    units: editId ? spending.find(i => i.id === editId)?.units || 1 : 1,
   };
-
-  if (!data.className || !data.instanceName) return;
 
   if (editId) {
     const idx = spending.findIndex(i => i.id === editId);
     if (idx >= 0) spending[idx] = { ...spending[idx], ...data };
   } else {
-    spending.push({ id: nextId(spending), ...data });
+    spending.push({ id: nextId(spending), ...data, purchaseDates: [] });
   }
 
   saveSpending(spending);
@@ -185,7 +331,7 @@ function renderStudentCards() {
   if (students.length === 0) {
     grid.innerHTML = `
       <div class="empty-state" style="grid-column: 1 / -1">
-        <div class="empty-icon">👨‍🏫</div>
+        <div class="empty-icon">○</div>
         <p>No students yet. Add your first student!</p>
       </div>`;
     return;
@@ -198,11 +344,10 @@ function renderStudentCards() {
     const hasData = metrics.hasData;
 
     html += `
-      <div class="student-card" data-id="${s.id}">
-        <div class="card-actions">
-          <button class="btn-icon" onclick="openCalendarModal(${s.id})" title="Attendance Calendar">📅</button>
-          <button class="btn-icon" onclick="editStudent(${s.id})" title="Edit">✏️</button>
-          <button class="btn-icon delete" onclick="deleteStudent(${s.id})" title="Delete">🗑️</button>
+      <div class="student-card" data-id="${s.id}" onclick="openCalendarModal(${s.id})" style="cursor:pointer">
+        <div class="card-actions" onclick="event.stopPropagation();">
+          <button class="btn-icon" onclick="editStudent(${s.id})" title="Edit">✎</button>
+          <button class="btn-icon delete" onclick="confirmDeleteStudent(${s.id})" title="Delete">×</button>
         </div>
         <div class="student-card-header">
           <span class="student-name">${escHtml(s.name)}</span>
@@ -222,13 +367,13 @@ function renderStudentCards() {
           <div class="student-field">
             <label>Lessons/Month</label>
             <div class="text-primary" style="font-weight:600">
-              ${hasData ? `${metrics.monthlyLessons.toFixed(1)} <span style="font-size:0.7em">📅</span>` : '-'}
+              ${hasData ? `${metrics.monthlyLessons.toFixed(1)}` : '-'}
             </div>
           </div>
           <div class="student-field">
             <label>Daily Income</label>
             <div class="text-primary" style="font-weight:600">
-              ${hasData ? `${CURRENCY}${formatNum(metrics.dailyIncome)}/d <span style="font-size:0.7em">📅</span>` : '-'}
+              ${hasData ? `${CURRENCY}${formatNum(metrics.dailyIncome)}/d` : '-'}
             </div>
           </div>
         </div>
@@ -251,6 +396,16 @@ function renderStudentCards() {
   renderBanner();
 }
 
+function confirmDeleteStudent(id) {
+  const student = students.find(s => s.id === id);
+  if (!student) return;
+  
+  document.getElementById('delete-confirm-text').textContent = `Are you sure you want to delete "${escHtml(student.name)}"? This cannot be undone.`;
+  window.pendingDeleteType = 'student';
+  window.pendingDeleteId = id;
+  document.getElementById('delete-confirm-modal').classList.add('active');
+}
+
 function deleteStudent(id) {
   students = students.filter(s => s.id !== id);
   saveStudents(students);
@@ -270,7 +425,7 @@ function openStudentModal(existing = null) {
   const form = document.getElementById('student-form');
   const title = document.getElementById('student-modal-title');
 
-  title.textContent = existing ? '✏️ Edit Student' : '➕ Add Student';
+  title.textContent = existing ? 'Edit Student' : 'Add Student';
   form.dataset.editId = existing ? existing.id : '';
 
   form.elements['st-name'].value = existing ? existing.name : '';
@@ -403,7 +558,7 @@ function openCalendarModal(studentId) {
     student.attendedDates = [];
   }
   
-  document.getElementById('calendar-modal-title').textContent = `📅 ${student.name}'s Attendance`;
+  document.getElementById('calendar-modal-title').textContent = `${student.name}'s Attendance`;
   renderCalendar();
   document.getElementById('calendar-modal').classList.add('active');
 }
@@ -541,7 +696,7 @@ function openSpendingCalendarModal(itemId) {
     item.purchaseDates = [];
   }
   
-  document.getElementById('spending-calendar-modal-title').textContent = `📅 ${item.instanceName} Purchases`;
+  document.getElementById('spending-calendar-modal-title').textContent = `${item.instanceName} Purchases`;
   renderSpendingCalendar();
   document.getElementById('spending-calendar-modal').classList.add('active');
 }
@@ -807,3 +962,4 @@ document.addEventListener('keydown', (e) => {
     confirmCostInput();
   }
 });
+

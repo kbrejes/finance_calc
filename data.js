@@ -41,12 +41,12 @@ const DEFAULT_STUDENTS = [
 const CATEGORIES = ['Housing', 'Food', 'Transport', 'Subscriptions', 'Personal', 'Other'];
 
 const CATEGORY_ICONS = {
-  Housing: '🏠',
-  Food: '🍜',
-  Transport: '🚕',
-  Subscriptions: '📱',
-  Personal: '🧑',
-  Other: '📦',
+  Housing: '◆',
+  Food: '●',
+  Transport: '▸',
+  Subscriptions: '◦',
+  Personal: '◉',
+  Other: '○',
 };
 
 // ---------- Data Access (JSON file via API) ----------
@@ -80,6 +80,11 @@ async function initDataFromServer() {
     
     spending = await spRes.json();
     students = await stRes.json();
+
+    // Clean up stale manual data after loading
+    if (typeof cleanupStaleSpendingData === 'function') {
+      cleanupStaleSpendingData();
+    }
 
     renderAll();
   } catch (err) {
