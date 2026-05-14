@@ -67,6 +67,7 @@ function initTabs() {
       document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
       btn.classList.add('active');
       document.getElementById('tab-' + tab).classList.add('active');
+      localStorage.setItem('activeTab', tab);
       // Re-render charts when tab becomes visible
       if (tab === 'spending') createSpendingChart('spending-chart', spending);
       if (tab === 'earnings') createIncomeChart('income-chart', students);
@@ -76,6 +77,15 @@ function initTabs() {
       }
     });
   });
+
+  // Restore last active tab
+  const savedTab = localStorage.getItem('activeTab');
+  if (savedTab) {
+    const btn = document.querySelector('.tab-btn[data-tab="' + savedTab + '"]');
+    if (btn) {
+      btn.click();
+    }
+  }
 }
 
 // ---------- Render All ----------
@@ -225,9 +235,7 @@ function renderSpendingTable() {
 }
 
 function confirmDeleteSpendingItem(id) {
-  window.pendingDeleteType = null;
-  window.pendingDeleteId = null;
-  const item = spending.find(i => i.id === id);
+  window.pendingDeleteType = null;  window.pendingDeleteId = null;  const item = spending.find(i => i.id === id);
   if (!item) return;
   
   pendingDeleteId = id;

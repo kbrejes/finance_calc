@@ -606,7 +606,7 @@ canvas {
   margin-bottom: var(--spacing-lg);
 }
 
-.calendar-day {
+.cal-day {
   aspect-ratio: 1;
   display: flex;
   align-items: center;
@@ -620,23 +620,37 @@ canvas {
   transition: all var(--duration-fast) var(--ease);
 }
 
-.calendar-day:hover {
+.cal-day:hover {
   border-color: var(--accent);
   background-color: var(--bg-surface);
 }
 
-.calendar-day.marked {
+.cal-day.attended,
+.cal-day.marked {
   background-color: var(--accent);
   color: var(--bg-base);
   font-weight: 600;
   border-color: var(--accent);
 }
 
-.calendar-day.other-month {
+.cal-day.other-month {
   opacity: 0.4;
 }
 
-.calendar-day-label {
+.cal-day.today {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.cal-day.future {
+  color: var(--text-muted);
+  opacity: 0.5;
+  cursor: default;
+}
+
+.cal-day-label {
   font-size: 11px;
   font-weight: 600;
   color: var(--text-muted);
@@ -668,17 +682,87 @@ canvas {
   border-radius: var(--radius-md);
   padding: var(--spacing-lg);
   transition: all var(--duration-fast) var(--ease);
+  position: relative;
 }
 
 .student-card:hover {
   border-color: var(--accent);
 }
 
+.card-actions {
+  position: absolute;
+  top: var(--spacing-sm);
+  right: var(--spacing-sm);
+  display: flex;
+  gap: var(--spacing-xs);
+}
+
+.student-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-md);
+  padding-right: 64px;
+  min-height: 32px;
+}
+
 .student-name {
   font-size: 16px;
   font-weight: 600;
   color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
+}
+
+.student-consistency {
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.consistency-consistent {
+  color: var(--success);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.consistency-inconsistent {
+  color: var(--warning);
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.student-fields {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.student-field label {
+  display: block;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: var(--spacing-xs);
+}
+
+.student-projected {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--border);
+}
+
+.proj-label {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.proj-value {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--accent);
+  font-family: var(--font-mono);
 }
 
 .student-price {
