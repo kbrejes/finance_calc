@@ -9,11 +9,19 @@ import {
   DialogTitle,
   DialogFooter,
 } from './ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select'
 
 export default function StudentModal({ open, onOpenChange, onSubmit, initialData }) {
   const [formData, setFormData] = useState({
     name: '',
     price: '',
+    status: 'active',
   })
 
   useEffect(() => {
@@ -21,11 +29,13 @@ export default function StudentModal({ open, onOpenChange, onSubmit, initialData
       setFormData({
         name: initialData.name || '',
         price: initialData.price || '',
+        status: initialData.status || 'active',
       })
     } else {
       setFormData({
         name: '',
         price: '',
+        status: 'active',
       })
     }
   }, [initialData, open])
@@ -70,18 +80,34 @@ export default function StudentModal({ open, onOpenChange, onSubmit, initialData
             />
           </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="price" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Lesson Price (฿)</Label>
-            <Input
-              id="price"
-              type="number"
-              placeholder="700"
-              step="50"
-              min="0"
-              value={formData.price}
-              onChange={(e) => handleChange('price', e.target.value)}
-              required
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="price" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Lesson Price (฿)</Label>
+              <Input
+                id="price"
+                type="number"
+                placeholder="700"
+                step="50"
+                min="0"
+                value={formData.price}
+                onChange={(e) => handleChange('price', e.target.value)}
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="status" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Status</Label>
+              <Select value={formData.status} onValueChange={(value) => handleChange('status', value)}>
+                <SelectTrigger id="status">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="paused">Paused</SelectItem>
+                  <SelectItem value="finished">Finished</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
 
           <DialogFooter>

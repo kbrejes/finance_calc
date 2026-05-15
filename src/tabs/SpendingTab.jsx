@@ -5,11 +5,12 @@ import SpendingModal from '../components/SpendingModal'
 import SpendingItem from '../components/SpendingItem'
 import SpendingCalendarModal from '../components/SpendingCalendarModal'
 import * as api from '../lib/api'
+import { getCalculatedSpendingMetrics } from '../lib/financeUtils'
 
 export default function SpendingTab() {
   const [spending, setSpending] = useState([])
   const [filter, setFilter] = useState('All')
-  const [sort, setSort] = useState('name')
+  const [sort, setSort] = useState('next-payment')
   const [modalOpen, setModalOpen] = useState(false)
   const [editingItem, setEditingItem] = useState(null)
   const [calendarOpen, setCalendarOpen] = useState(false)
@@ -104,6 +105,15 @@ export default function SpendingTab() {
     case 'category':
       filtered = filtered.sort((a, b) => a.category.localeCompare(b.category))
       break
+    case 'next-payment':
+      filtered = filtered.sort((a, b) => {
+        const metricsA = getCalculatedSpendingMetrics(a)
+        const metricsB = getCalculatedSpendingMetrics(b)
+        const daysA = metricsA.daysUntilNext === null ? 9999 : metricsA.daysUntilNext
+        const daysB = metricsB.daysUntilNext === null ? 9999 : metricsB.daysUntilNext
+        return daysA - daysB
+      })
+      break
   }
 
   return (
@@ -133,6 +143,7 @@ export default function SpendingTab() {
           onChange={(e) => setSort(e.target.value)}
           className="rounded-md bg-input border border-border px-3 py-2 text-sm text-foreground"
         >
+          <option value="next-payment">Sort: Next Payment</option>
           <option value="name">Sort: Name</option>
           <option value="price-asc">Sort: Price ↑</option>
           <option value="price-desc">Sort: Price ↓</option>

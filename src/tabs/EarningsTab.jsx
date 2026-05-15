@@ -27,6 +27,7 @@ export default function EarningsTab() {
         ...editingStudent,
         name: formData.name,
         price: parseFloat(formData.price),
+        status: formData.status,
       }
       const result = await api.updateStudent(editingStudent.id, updatedData)
       if (result) {
@@ -36,6 +37,7 @@ export default function EarningsTab() {
       const newStudent = {
         name: formData.name,
         price: parseFloat(formData.price),
+        status: formData.status,
         attendanceDates: [],
       }
       const result = await api.addStudent(newStudent)

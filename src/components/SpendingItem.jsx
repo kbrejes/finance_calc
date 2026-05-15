@@ -61,7 +61,11 @@ export default function SpendingItem({
         </div>
         <div className="flex items-center gap-2 mt-1">
           {predictionText ? (
-            <span className="text-[10px] text-muted-foreground">
+            <span className={`text-[10px] font-medium ${
+              daysUntilNext < 0 ? 'text-danger' : 
+              daysUntilNext <= 3 ? 'text-warning' : 
+              'text-success'
+            }`}>
               {predictionText}
             </span>
           ) : (

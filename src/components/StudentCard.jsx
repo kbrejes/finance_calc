@@ -2,8 +2,15 @@ import { Pencil, X } from 'lucide-react'
 import { Button } from './ui/button'
 import { getCalculatedStudentMetrics, formatNum } from '../lib/financeUtils'
 
+const STATUS_CONFIG = {
+  active: { label: 'Act', dot: 'bg-success' },
+  paused: { label: 'Psd', dot: 'bg-muted-foreground' },
+  finished: { label: 'Fin', dot: 'bg-danger' },
+}
+
 export default function StudentCard({ student, onCalendar, onDelete, onEdit }) {
   const metrics = getCalculatedStudentMetrics(student)
+  const status = STATUS_CONFIG[student.status || 'active']
 
   return (
     <div 
@@ -16,8 +23,8 @@ export default function StudentCard({ student, onCalendar, onDelete, onEdit }) {
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-bold text-foreground tracking-tight">{student.name}</h3>
             <div className="flex items-center gap-1.5 px-1.5 py-0.5 rounded-full bg-muted/20 border border-border/50">
-              <div className="h-1 w-1 rounded-full bg-primary/60 animate-pulse" />
-              <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">Act</span>
+              <div className={`h-1 w-1 rounded-full ${status.dot} ${student.status === 'active' ? 'animate-pulse' : ''}`} />
+              <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">{status.label}</span>
             </div>
           </div>
           <div className="text-sm font-black text-muted-foreground/80 tracking-tighter">
