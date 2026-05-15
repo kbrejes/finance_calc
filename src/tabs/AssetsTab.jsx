@@ -44,9 +44,12 @@ export default function AssetsTab() {
     const load = async () => {
       try {
         const data = await api.fetchAssets()
-        // Only override if the server actually has meaningful data
+        // Safely merge with defaults to prevent crashes if server keys are missing
         if (data && (data.physical?.length > 0 || data.financial?.length > 0)) {
-          setAssets(data)
+          setAssets(prev => ({
+            ...prev,
+            ...data
+          }))
         } else {
           // If server is empty, sync our defaults TO the server once
           api.saveAssets(assets)
