@@ -1,15 +1,29 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
 import SpendingTab from './tabs/SpendingTab'
 import EarningsTab from './tabs/EarningsTab'
 import DashboardTab from './tabs/DashboardTab'
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'spending')
+  const [activeTab, setActiveTab] = useState('spending')
+
+  // Load on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem('activeTab')
+      if (saved) setActiveTab(saved)
+    } catch (e) {
+      console.error('Failed to load tab state', e)
+    }
+  }, [])
 
   const handleTabChange = (val) => {
     setActiveTab(val)
-    localStorage.setItem('activeTab', val)
+    try {
+      localStorage.setItem('activeTab', val)
+    } catch (e) {
+      console.error('Failed to save tab state', e)
+    }
   }
 
   return (
