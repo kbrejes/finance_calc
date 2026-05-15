@@ -10,6 +10,12 @@ const __dirname = dirname(__filename)
 const app = express()
 const PORT = 3005
 const DB_FILE = path.join(__dirname, 'db.json')
+const BACKUP_DIR = path.join(__dirname, 'backups')
+
+// Ensure directories exist
+if (!fs.existsSync(BACKUP_DIR)) {
+  fs.mkdirSync(BACKUP_DIR, { recursive: true });
+}
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'dist')));
@@ -18,14 +24,40 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 function readDB() {
   try {
+    if (!fs.existsSync(DB_FILE)) return { spending: [], students: [] };
     return JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
-  } catch {
+  } catch (error) {
+    console.error('Error reading DB:', error);
     return { spending: [], students: [] };
   }
 }
 
 function writeDB(data) {
-  fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
+  try {
+    // 1. Create a versioned backup before writing
+    if (fs.existsSync(DB_FILE)) {
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const backupPath = path.join(BACKUP_DIR, `db_${timestamp}.json`);
+      fs.copyFileSync(DB_FILE, backupPath);
+
+      // 2. Keep only the last 100 backups to save space
+      const backups = fs.readdirSync(BACKUP_DIR)
+        .filter(f => f.startsWith('db_'))
+        .sort()
+        .reverse();
+      
+      if (backups.length > 100) {
+        backups.slice(100).forEach(f => fs.unlinkSync(path.join(BACKUP_DIR, f)));
+      }
+    }
+
+    // 3. Atomic Write: Write to temp file first, then rename
+    const tempFile = `${DB_FILE}.tmp`;
+    fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf-8');
+    fs.renameSync(tempFile, DB_FILE);
+  } catch (error) {
+    console.error('CRITICAL: Failed to write to DB:', error);
+  }
 }
 
 // Initialize db.json if it doesn't exist
