@@ -135,9 +135,9 @@ export default function DashboardTab() {
       {
         label: 'Income',
         data: stats.cumulativeIncome,
-        borderColor: '#10B981', 
-        backgroundColor: 'rgba(16, 185, 129, 0.05)',
-        borderWidth: 2,
+        borderColor: '#34D399', // Brighter Emerald (emerald-400)
+        backgroundColor: 'rgba(52, 211, 153, 0.1)',
+        borderWidth: 3, // Thicker
         tension: 0.4,
         pointRadius: 0,
         fill: true,
@@ -145,9 +145,9 @@ export default function DashboardTab() {
       {
         label: 'Spending',
         data: stats.cumulativeSpending,
-        borderColor: '#F43F5E', 
-        backgroundColor: 'rgba(244, 63, 94, 0.05)',
-        borderWidth: 2,
+        borderColor: '#FB7185', // Brighter Rose (rose-400)
+        backgroundColor: 'rgba(251, 113, 133, 0.1)',
+        borderWidth: 3, // Thicker
         tension: 0.4,
         pointRadius: 0,
         fill: true,
@@ -257,13 +257,13 @@ export default function DashboardTab() {
                 
                 <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar pr-0.5">
                   {dayData.earnings.map((e, idx) => (
-                    <div key={`e-${idx}`} className="flex items-center gap-1 text-[7px] leading-tight px-1 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-black" title={`${e.name}: ฿${e.amount}`}>
+                    <div key={`e-${idx}`} className="flex items-center gap-1 text-[7px] leading-tight px-1 py-0.5 rounded-md bg-emerald-500 text-white font-black" title={`${e.name}: ฿${e.amount}`}>
                       <ArrowUpCircle className="h-1.5 w-1.5 shrink-0" />
                       <span className="whitespace-nowrap">{e.name} ฿{formatNum(e.amount)}</span>
                     </div>
                   ))}
                   {dayData.spendings.map((s, idx) => (
-                    <div key={`s-${idx}`} className="flex items-center gap-1 text-[7px] leading-tight px-1 py-0.5 rounded-md bg-rose-500/10 text-rose-400 font-black" title={`${s.name}: ฿${s.amount}`}>
+                    <div key={`s-${idx}`} className="flex items-center gap-1 text-[7px] leading-tight px-1 py-0.5 rounded-md bg-rose-500 text-white font-black" title={`${s.name}: ฿${s.amount}`}>
                       <ArrowDownCircle className="h-1.5 w-1.5 shrink-0" />
                       <span className="whitespace-nowrap">{s.name} ฿{formatNum(s.amount)}</span>
                     </div>
