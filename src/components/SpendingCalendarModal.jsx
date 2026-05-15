@@ -172,7 +172,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                         : isToday
                         ? 'border-2 border-primary shadow-[0_0_10px_rgba(var(--primary),0.2)] bg-muted/50 text-foreground'
                         : 'border border-border/40 text-muted-foreground/60 hover:bg-muted/30 hover:text-foreground'
-                    } ${isToday && !isMarked && !isCurrentlySelected ? 'animate-pulse' : ''}`}
+                    }`}
                   >
                     <span className={isMarked ? 'text-[10px] font-bold leading-none' : 'text-xs font-bold'}>{day}</span>
                     {isMarked && (
