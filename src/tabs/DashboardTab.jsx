@@ -257,15 +257,15 @@ export default function DashboardTab() {
                 
                 <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar pr-0.5">
                   {dayData.earnings.map((e, idx) => (
-                    <div key={`e-${idx}`} className="flex items-center gap-1 text-[8px] leading-tight px-1.5 py-0.5 rounded-md bg-emerald-500/10 text-emerald-500/80 font-black truncate" title={`${e.name}: ฿${e.amount}`}>
-                      <ArrowUpCircle className="h-2 w-2 shrink-0" />
-                      <span>{e.name}</span>
+                    <div key={`e-${idx}`} className="flex items-center gap-1 text-[7px] leading-tight px-1 py-0.5 rounded-md bg-emerald-500/10 text-emerald-400 font-black" title={`${e.name}: ฿${e.amount}`}>
+                      <ArrowUpCircle className="h-1.5 w-1.5 shrink-0" />
+                      <span className="whitespace-nowrap">{e.name} ฿{formatNum(e.amount)}</span>
                     </div>
                   ))}
                   {dayData.spendings.map((s, idx) => (
-                    <div key={`s-${idx}`} className="flex items-center gap-1 text-[8px] leading-tight px-1.5 py-0.5 rounded-md bg-rose-500/10 text-rose-500/80 font-black truncate" title={`${s.name}: ฿${s.amount}`}>
-                      <ArrowDownCircle className="h-2 w-2 shrink-0" />
-                      <span>{s.name}</span>
+                    <div key={`s-${idx}`} className="flex items-center gap-1 text-[7px] leading-tight px-1 py-0.5 rounded-md bg-rose-500/10 text-rose-400 font-black" title={`${s.name}: ฿${s.amount}`}>
+                      <ArrowDownCircle className="h-1.5 w-1.5 shrink-0" />
+                      <span className="whitespace-nowrap">{s.name} ฿{formatNum(s.amount)}</span>
                     </div>
                   ))}
                 </div>
