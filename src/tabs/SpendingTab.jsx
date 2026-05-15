@@ -11,6 +11,7 @@ export default function SpendingTab() {
   const [filter, setFilter] = useState('All')
   const [sort, setSort] = useState('name')
   const [modalOpen, setModalOpen] = useState(false)
+  const [editingItem, setEditingItem] = useState(null)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [selectedSpendingItem, setSelectedSpendingItem] = useState(null)
 
@@ -24,19 +25,39 @@ export default function SpendingTab() {
   }, [])
 
   const handleAddSpending = async (formData) => {
-    const newItem = {
-      category: formData.category,
-      className: formData.className.trim(),
-      instanceName: formData.className.trim(),
-      isEssential: formData.essential === 'true',
-      pricePerUnit: 0,
-      units: 1,
-      purchaseDates: [],
+    if (editingItem) {
+      const updatedItem = {
+        ...editingItem,
+        category: formData.category,
+        className: formData.className.trim(),
+        instanceName: formData.className.trim(),
+        isEssential: formData.essential === 'true',
+      }
+      const result = await api.updateSpending(editingItem.id, updatedItem)
+      if (result) {
+        setSpending(spending.map(item => item.id === editingItem.id ? result : item))
+      }
+      setEditingItem(null)
+    } else {
+      const newItem = {
+        category: formData.category,
+        className: formData.className.trim(),
+        instanceName: formData.className.trim(),
+        isEssential: formData.essential === 'true',
+        pricePerUnit: 0,
+        units: 1,
+        purchaseDates: [],
+      }
+      const result = await api.addSpending(newItem)
+      if (result) {
+        setSpending([...spending, result])
+      }
     }
-    const result = await api.addSpending(newItem)
-    if (result) {
-      setSpending([...spending, result])
-    }
+  }
+
+  const handleEditSpending = (item) => {
+    setEditingItem(item)
+    setModalOpen(true)
   }
 
   const handleDeleteSpending = async (id) => {
@@ -130,13 +151,22 @@ export default function SpendingTab() {
               key={item.id}
               item={item}
               onOpenCalendar={handleOpenCalendar}
+              onEdit={handleEditSpending}
               onDelete={handleDeleteSpending}
             />
           ))}
         </div>
       )}
 
-      <SpendingModal open={modalOpen} onOpenChange={setModalOpen} onSubmit={handleAddSpending} />
+      <SpendingModal 
+        open={modalOpen} 
+        onOpenChange={(val) => {
+          setModalOpen(val)
+          if (!val) setEditingItem(null)
+        }} 
+        onSubmit={handleAddSpending}
+        initialData={editingItem}
+      />
 
       {selectedSpendingItem && (
         <SpendingCalendarModal

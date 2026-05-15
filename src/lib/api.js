@@ -39,6 +39,21 @@ export async function deleteSpending(id) {
   }
 }
 
+export async function updateSpending(id, data) {
+  try {
+    const res = await fetch(`${API_BASE}/spending/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  } catch (error) {
+    console.error('Failed to update spending:', error)
+    return null
+  }
+}
+
 export async function updateSpendingPurchaseDates(id, purchaseDates) {
   try {
     const res = await fetch(`${API_BASE}/spending/${id}`, {

@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
@@ -18,12 +18,28 @@ import {
   SelectValue,
 } from './ui/select'
 
-export default function SpendingModal({ open, onOpenChange, onSubmit }) {
+export default function SpendingModal({ open, onOpenChange, onSubmit, initialData }) {
   const [formData, setFormData] = useState({
     category: 'Housing',
     essential: 'true',
     className: '',
   })
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        category: initialData.category || 'Housing',
+        essential: initialData.isEssential ? 'true' : 'false',
+        className: initialData.className || '',
+      })
+    } else {
+      setFormData({
+        category: 'Housing',
+        essential: 'true',
+        className: '',
+      })
+    }
+  }, [initialData, open])
 
   const handleChange = (field, value) => {
     setFormData(prev => ({
@@ -39,11 +55,6 @@ export default function SpendingModal({ open, onOpenChange, onSubmit }) {
       return
     }
     onSubmit(formData)
-    setFormData({
-      category: 'Housing',
-      essential: 'true',
-      className: '',
-    })
     onOpenChange(false)
   }
 
@@ -51,9 +62,9 @@ export default function SpendingModal({ open, onOpenChange, onSubmit }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Add Spending Item</DialogTitle>
+          <DialogTitle>{initialData ? 'Edit Spending Item' : 'Add Spending Item'}</DialogTitle>
           <DialogDescription>
-            Create a new expense item for tracking
+            {initialData ? 'Update your expense item properties' : 'Create a new expense item for tracking'}
           </DialogDescription>
         </DialogHeader>
 
