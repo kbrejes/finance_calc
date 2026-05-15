@@ -99,20 +99,23 @@ export default function SpendingTab() {
       const oldTotalByAcc = {}
       const newTotalByAcc = {}
       
+      const getCost = (d) => {
+        if (typeof d === 'string') return (selectedSpendingItem.pricePerUnit || 0) * (selectedSpendingItem.units || 1)
+        return d.cost || 0
+      }
+
       // Track totals per account
       oldDates.forEach(d => {
         const acc = (typeof d === 'string' ? accountName : (d.account || accountName))
         if (acc !== 'none') {
-          const cost = typeof d === 'string' ? 0 : (d.cost || 0)
-          oldTotalByAcc[acc] = (oldTotalByAcc[acc] || 0) + cost
+          oldTotalByAcc[acc] = (oldTotalByAcc[acc] || 0) + getCost(d)
         }
       })
       
       dates.forEach(d => {
         const acc = (typeof d === 'string' ? accountName : (d.account || accountName))
         if (acc !== 'none') {
-          const cost = typeof d === 'string' ? 0 : (d.cost || 0)
-          newTotalByAcc[acc] = (newTotalByAcc[acc] || 0) + cost
+          newTotalByAcc[acc] = (newTotalByAcc[acc] || 0) + getCost(d)
         }
       })
 
@@ -126,6 +129,7 @@ export default function SpendingTab() {
         
         allAccs.forEach(acc => {
           const diff = (newTotalByAcc[acc] || 0) - (oldTotalByAcc[acc] || 0)
+          console.log(`[Deduction] Account: ${acc}, Diff: ${diff}`)
           if (diff !== 0) {
             anyChange = true
             updatedFinancial = updatedFinancial.map(f => 
@@ -135,6 +139,7 @@ export default function SpendingTab() {
         })
         
         if (anyChange) {
+          console.log('[Deduction] Saving updated assets...')
           await api.saveAssets({ ...assetData, financial: updatedFinancial })
           setAccounts(updatedFinancial)
         }
