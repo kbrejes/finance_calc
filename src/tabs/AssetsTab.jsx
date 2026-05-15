@@ -66,8 +66,12 @@ export default function AssetsTab() {
   }
 
   const updateSection = (section, index, field, value) => {
-    const newData = { ...assets }
-    newData[section][index][field] = value
+    const newData = { 
+      ...assets,
+      [section]: assets[section].map((item, i) => 
+        i === index ? { ...item, [field]: value } : item
+      )
+    }
     handleSave(newData)
   }
 
@@ -94,7 +98,7 @@ export default function AssetsTab() {
                     type="number"
                     value={item.value}
                     onChange={(e) => updateSection('financial', i, 'value', parseFloat(e.target.value) || 0)}
-                    className="w-24 bg-transparent text-right text-sm font-black text-foreground focus:outline-none"
+                    className="w-24 bg-transparent text-right text-sm font-black text-foreground focus:outline-none hover:bg-primary/5 focus:bg-primary/10 px-1 rounded transition-colors cursor-pointer"
                   />
                   <span className="text-[10px] font-bold text-muted-foreground/40">{item.currency}</span>
                 </div>
@@ -119,7 +123,7 @@ export default function AssetsTab() {
                   type="date"
                   value={item.exp}
                   onChange={(e) => updateSection('vitals', i, 'exp', e.target.value)}
-                  className="bg-transparent text-right text-[11px] font-bold text-primary focus:outline-none cursor-pointer"
+                  className="bg-transparent text-right text-[11px] font-bold text-primary focus:outline-none cursor-pointer hover:bg-primary/5 focus:bg-primary/10 px-1 rounded transition-colors"
                 />
               </div>
             ))}
@@ -146,7 +150,7 @@ export default function AssetsTab() {
                     type="number"
                     value={item.min}
                     onChange={(e) => updateSection('physical', i, 'min', parseInt(e.target.value) || 0)}
-                    className="w-20 bg-transparent text-right text-xs font-black text-foreground/80 focus:outline-none"
+                    className="w-20 bg-transparent text-right text-xs font-black text-foreground/80 focus:outline-none hover:bg-primary/5 focus:bg-primary/10 px-1 rounded transition-colors cursor-pointer"
                   />
                 </div>
                 <div className="flex items-center justify-between">
@@ -155,7 +159,7 @@ export default function AssetsTab() {
                     type="number"
                     value={item.max}
                     onChange={(e) => updateSection('physical', i, 'max', parseInt(e.target.value) || 0)}
-                    className="w-20 bg-transparent text-right text-xs font-black text-foreground/80 focus:outline-none"
+                    className="w-20 bg-transparent text-right text-xs font-black text-foreground/80 focus:outline-none hover:bg-primary/5 focus:bg-primary/10 px-1 rounded transition-colors cursor-pointer"
                   />
                 </div>
               </div>
@@ -188,7 +192,7 @@ export default function AssetsTab() {
                       type="number"
                       value={item.sub}
                       onChange={(e) => updateSection('digital', i, 'sub', parseInt(e.target.value) || 0)}
-                      className="w-full bg-transparent text-sm font-black text-primary focus:outline-none"
+                      className="w-full bg-transparent text-sm font-black text-primary focus:outline-none hover:bg-primary/5 focus:bg-primary/10 px-1 rounded transition-colors cursor-pointer"
                     />
                   </div>
                   <div>
@@ -197,7 +201,7 @@ export default function AssetsTab() {
                       type="number"
                       value={item.posts}
                       onChange={(e) => updateSection('digital', i, 'posts', parseInt(e.target.value) || 0)}
-                      className="w-full bg-transparent text-sm font-black text-foreground/80 focus:outline-none"
+                      className="w-full bg-transparent text-sm font-black text-foreground/80 focus:outline-none hover:bg-primary/5 focus:bg-primary/10 px-1 rounded transition-colors cursor-pointer"
                     />
                   </div>
                 </div>
