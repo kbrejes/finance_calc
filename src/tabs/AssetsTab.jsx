@@ -124,28 +124,7 @@ export default function AssetsTab() {
   }
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
-      {/* Top Intelligence Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-sm">
-          <div className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest mb-1">Total Liquid (Est.)</div>
-          <div className="text-xl font-black text-foreground">฿{formatNum(totalFinancial)}</div>
-        </div>
-        <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-sm">
-          <div className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest mb-1">Physical Value (Est.)</div>
-          <div className="text-xl font-black text-foreground">
-            ฿{formatNum(physicalMin)} <span className="text-muted-foreground/30 mx-1">—</span> ฿{formatNum(physicalMax)}
-          </div>
-        </div>
-        <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 shadow-sm flex items-center justify-between">
-          <div>
-            <div className="text-[10px] font-black text-primary/60 uppercase tracking-widest mb-1">Safety Status</div>
-            <div className="text-sm font-bold text-primary">All Systems Nominal</div>
-          </div>
-          <ShieldCheck className="h-6 w-6 text-primary/40" />
-        </div>
-      </div>
-
+    <div className="space-y-6 animate-in fade-in duration-500 pb-20">
       {/* Financial & Vitals (Top Row) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Financial Assets */}
@@ -155,7 +134,10 @@ export default function AssetsTab() {
               <div className="p-2 rounded-lg bg-primary/10">
                 <Wallet className="h-5 w-5 text-primary" />
               </div>
-              <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Liquid Capital</h3>
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Liquid Capital</h3>
+                <div className="text-[10px] font-bold text-primary/60 mt-0.5">Total: ฿{formatNum(totalFinancial)}</div>
+              </div>
             </div>
             <button 
               onClick={() => addItem('financial')}
@@ -205,7 +187,15 @@ export default function AssetsTab() {
               <div className="p-2 rounded-lg bg-primary/10">
                 <ShieldCheck className="h-5 w-5 text-primary" />
               </div>
-              <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Vital Documents</h3>
+              <div>
+                <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Vital Documents</h3>
+                <div className="flex items-center gap-1.5 mt-0.5">
+                  <div className={`h-1.5 w-1.5 rounded-full animate-pulse ${assets.vitals?.some(v => isExpiringSoon(v.exp)) ? 'bg-danger' : 'bg-primary'}`} />
+                  <span className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-tighter">
+                    {assets.vitals?.some(v => isExpiringSoon(v.exp)) ? 'Renewal Required' : 'Status: Secure'}
+                  </span>
+                </div>
+              </div>
             </div>
             <button 
               onClick={() => addItem('vitals')}
@@ -253,7 +243,10 @@ export default function AssetsTab() {
             <div className="p-2 rounded-lg bg-primary/10">
               <FileText className="h-5 w-5 text-primary" />
             </div>
-            <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Physical Inventory</h3>
+            <div>
+              <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Physical Inventory</h3>
+              <div className="text-[10px] font-bold text-muted-foreground/50 mt-0.5">Est: ฿{formatNum(physicalMin)} - ฿{formatNum(physicalMax)}</div>
+            </div>
           </div>
           <button 
             onClick={() => addItem('physical')}
