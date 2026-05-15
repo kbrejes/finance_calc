@@ -44,8 +44,12 @@ export default function AssetsTab() {
     const load = async () => {
       try {
         const data = await api.fetchAssets()
-        if (data && (data.physical || data.financial)) {
+        // Only override if the server actually has meaningful data
+        if (data && (data.physical?.length > 0 || data.financial?.length > 0)) {
           setAssets(data)
+        } else {
+          // If server is empty, sync our defaults TO the server once
+          api.saveAssets(assets)
         }
       } catch (e) {
         console.error('Failed to load assets', e)
