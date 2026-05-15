@@ -179,30 +179,6 @@ export default function CalendarModal({
             </div>
           </div>
         </div>
-
-        {/* Dynamic Ledger Footer */}
-        <div className="bg-muted/30 border-t border-border/40 p-5 space-y-3">
-          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
-            <span>Student Standing</span>
-            <span>Summary</span>
-          </div>
-          <div className="grid grid-cols-3 gap-2">
-            <div className="p-2 rounded-lg bg-card border border-border/40">
-              <div className="text-[7px] font-black text-muted-foreground/40 uppercase mb-1">Total Lessons</div>
-              <div className="text-[10px] font-black text-foreground/70">฿{formatNum(totalCost)}</div>
-            </div>
-            <div className="p-2 rounded-lg bg-card border border-border/40">
-              <div className="text-[7px] font-black text-muted-foreground/40 uppercase mb-1">Total Paid</div>
-              <div className="text-[10px] font-black text-emerald-500">฿{formatNum(totalPaid)}</div>
-            </div>
-            <div className={`p-2 rounded-lg border shadow-sm ${balance >= 0 ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-rose-500/5 border-rose-500/30'}`}>
-              <div className="text-[7px] font-black text-muted-foreground/40 uppercase mb-1">Balance</div>
-              <div className={`text-[10px] font-black ${balance >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
-                ฿{formatNum(balance)}
-              </div>
-            </div>
-          </div>
-        </div>
       </DialogContent>
     </Dialog>
   )

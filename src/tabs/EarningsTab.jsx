@@ -4,12 +4,14 @@ import { Plus } from 'lucide-react'
 import StudentModal from '../components/StudentModal'
 import StudentCard from '../components/StudentCard'
 import CalendarModal from '../components/CalendarModal'
+import StudentStatsModal from '../components/StudentStatsModal'
 import * as api from '../lib/api'
 
 export default function EarningsTab() {
   const [students, setStudents] = useState([])
   const [studentModalOpen, setStudentModalOpen] = useState(false)
   const [calendarModalOpen, setCalendarModalOpen] = useState(false)
+  const [statsModalOpen, setStatsModalOpen] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState(null)
   const [editingStudent, setEditingStudent] = useState(null)
 
@@ -39,6 +41,7 @@ export default function EarningsTab() {
         price: parseFloat(formData.price),
         status: formData.status,
         attendanceDates: [],
+        payments: []
       }
       const result = await api.addStudent(newStudent)
       if (result) {
@@ -57,23 +60,12 @@ export default function EarningsTab() {
     }
   }
 
-  const handleOpenCalendar = (student) => {
-    setSelectedStudent(student)
-    setCalendarModalOpen(true)
-  }
-
-  const handleOpenEdit = (student) => {
-    setEditingStudent(student)
-    setStudentModalOpen(true)
-  }
-
   const handleUpdateAttendance = async (attendanceDates) => {
     const result = await api.updateStudentAttendance(selectedStudent.id, attendanceDates)
     if (result) {
       const updatedStudent = { ...selectedStudent, attendanceDates }
       setStudents(students.map(s => s.id === selectedStudent.id ? updatedStudent : s))
       setSelectedStudent(updatedStudent)
-      console.log(`Saved attendance for ${selectedStudent.name}`)
     }
   }
 
@@ -83,7 +75,6 @@ export default function EarningsTab() {
       const updatedStudent = { ...selectedStudent, payments }
       setStudents(students.map(s => s.id === selectedStudent.id ? updatedStudent : s))
       setSelectedStudent(updatedStudent)
-      console.log(`Saved payment for ${selectedStudent.name}`)
     }
   }
 
@@ -117,8 +108,15 @@ export default function EarningsTab() {
                 setSelectedStudent(student)
                 setCalendarModalOpen(true)
               }}
+              onStats={() => {
+                setSelectedStudent(student)
+                setStatsModalOpen(true)
+              }}
               onDelete={() => handleDeleteStudent(student.id)}
-              onEdit={() => handleOpenEdit(student)}
+              onEdit={(s) => {
+                setEditingStudent(s)
+                setStudentModalOpen(true)
+              }}
             />
           ))}
         </div>
@@ -135,16 +133,23 @@ export default function EarningsTab() {
       />
 
       {selectedStudent && (
-        <CalendarModal
-          open={calendarModalOpen}
-          onOpenChange={setCalendarModalOpen}
-          studentName={selectedStudent.name}
-          attendanceDates={selectedStudent.attendanceDates}
-          payments={selectedStudent.payments || []}
-          avgLessonPrice={selectedStudent.price}
-          onUpdateAttendance={handleUpdateAttendance}
-          onUpdatePayments={handleUpdatePayments}
-        />
+        <>
+          <CalendarModal
+            open={calendarModalOpen}
+            onOpenChange={setCalendarModalOpen}
+            studentName={selectedStudent.name}
+            attendanceDates={selectedStudent.attendanceDates}
+            payments={selectedStudent.payments || []}
+            avgLessonPrice={selectedStudent.price}
+            onUpdateAttendance={handleUpdateAttendance}
+            onUpdatePayments={handleUpdatePayments}
+          />
+          <StudentStatsModal
+            open={statsModalOpen}
+            onOpenChange={setStatsModalOpen}
+            student={selectedStudent}
+          />
+        </>
       )}
     </div>
   )
