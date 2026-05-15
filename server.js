@@ -175,6 +175,20 @@ app.put('/api/students/:id', (req, res) => {
   }
 });
 
+// ---------- ASSETS ENDPOINTS ----------
+
+app.get('/api/assets', (req, res) => {
+  const db = readDB();
+  res.json(db.assets || { physical: [], financial: [], vitals: [], digital: [] });
+});
+
+app.post('/api/assets', (req, res) => {
+  const db = readDB();
+  db.assets = req.body;
+  writeDB(db);
+  res.json(db.assets);
+});
+
 // ---------- Start ----------
 
 app.listen(PORT, () => {

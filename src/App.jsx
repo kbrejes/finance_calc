@@ -3,9 +3,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs'
 import SpendingTab from './tabs/SpendingTab'
 import EarningsTab from './tabs/EarningsTab'
 import DashboardTab from './tabs/DashboardTab'
+import AssetsTab from './tabs/AssetsTab'
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('spending')
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'spending')
 
   // Load on mount
   useEffect(() => {
@@ -30,9 +31,10 @@ export default function App() {
     <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto max-w-7xl px-4 py-6">
         <Tabs value={activeTab} onValueChange={handleTabChange}>
-          <TabsList className="grid w-full max-w-md grid-cols-3 mb-8">
+          <TabsList className="grid w-full max-w-md grid-cols-4 mb-8">
             <TabsTrigger value="spending">Spending</TabsTrigger>
             <TabsTrigger value="earnings">Earnings</TabsTrigger>
+            <TabsTrigger value="assets">Assets</TabsTrigger>
             <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           </TabsList>
 
@@ -42,6 +44,10 @@ export default function App() {
 
           <TabsContent value="earnings">
             <EarningsTab />
+          </TabsContent>
+
+          <TabsContent value="assets">
+            <AssetsTab />
           </TabsContent>
 
           <TabsContent value="dashboard">

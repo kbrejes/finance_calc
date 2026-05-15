@@ -137,3 +137,17 @@ export async function updateStudent(id, data) {
     return null
   }
 }
+
+export async function fetchAssets() {
+  const response = await fetch(`${API_BASE}/assets`);
+  return response.json();
+}
+
+export async function saveAssets(assets) {
+  const response = await fetch(`${API_BASE}/assets`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(assets),
+  });
+  return response.json();
+}
