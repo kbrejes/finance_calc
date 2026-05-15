@@ -1,0 +1,109 @@
+const API_BASE = '/api'
+
+// ============ SPENDING ENDPOINTS ============
+
+export async function fetchSpending() {
+  try {
+    const res = await fetch(`${API_BASE}/spending`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  } catch (error) {
+    console.error('Failed to fetch spending:', error)
+    return []
+  }
+}
+
+export async function addSpending(item) {
+  try {
+    const res = await fetch(`${API_BASE}/spending`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(item),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  } catch (error) {
+    console.error('Failed to add spending:', error)
+    return null
+  }
+}
+
+export async function deleteSpending(id) {
+  try {
+    const res = await fetch(`${API_BASE}/spending/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return true
+  } catch (error) {
+    console.error('Failed to delete spending:', error)
+    return false
+  }
+}
+
+export async function updateSpendingPurchaseDates(id, purchaseDates) {
+  try {
+    const res = await fetch(`${API_BASE}/spending/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ purchaseDates }),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  } catch (error) {
+    console.error('Failed to update spending purchase dates:', error)
+    return null
+  }
+}
+
+// ============ STUDENTS ENDPOINTS ============
+
+export async function fetchStudents() {
+  try {
+    const res = await fetch(`${API_BASE}/students`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  } catch (error) {
+    console.error('Failed to fetch students:', error)
+    return []
+  }
+}
+
+export async function addStudent(student) {
+  try {
+    const res = await fetch(`${API_BASE}/students`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(student),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  } catch (error) {
+    console.error('Failed to add student:', error)
+    return null
+  }
+}
+
+export async function deleteStudent(id) {
+  try {
+    const res = await fetch(`${API_BASE}/students/${id}`, { method: 'DELETE' })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return true
+  } catch (error) {
+    console.error('Failed to delete student:', error)
+    return false
+  }
+}
+
+export async function updateStudentAttendance(id, attendanceDates) {
+  try {
+    const res = await fetch(`${API_BASE}/students/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ attendanceDates }),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  } catch (error) {
+    console.error('Failed to update student attendance:', error)
+    return null
+  }
+}

@@ -139,20 +139,19 @@
     {
       "id": 1,
       "name": "Alex Belyaev",
-      "lessonPrice": 750,
-      "attendedDates": [
-        "2026-05-05",
+      "price": 750,
+      "attendanceDates": [
         "2026-05-13",
-        "2026-05-06",
-        "2026-05-11",
-        "2026-05-10"
+        "2026-05-04",
+        "2026-05-10",
+        "2026-04-22"
       ]
     },
     {
       "id": 2,
       "name": "Kirill Maslow",
-      "lessonPrice": 1300,
-      "attendedDates": [
+      "price": 1300,
+      "attendanceDates": [
         "2026-05-10",
         "2026-05-04",
         "2026-05-12"
@@ -161,8 +160,8 @@
     {
       "id": 3,
       "name": "Alex Averyanov",
-      "lessonPrice": 650,
-      "attendedDates": [
+      "price": 650,
+      "attendanceDates": [
         "2026-05-06",
         "2026-05-13",
         "2026-05-11",
