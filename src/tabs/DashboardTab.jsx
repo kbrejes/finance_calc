@@ -219,6 +219,31 @@ export default function DashboardTab() {
           <Line data={chartData} options={chartOptions} />
         </div>
       </div>
+
+      {/* Data Management Section */}
+      <div className="rounded-lg bg-card/50 border border-dashed border-border/60 p-6 flex flex-col md:flex-row items-center justify-between gap-4">
+        <div>
+          <h3 className="text-sm font-bold text-foreground/80 mb-1">Off-site Data Safety</h3>
+          <p className="text-[10px] text-muted-foreground leading-relaxed max-w-md">
+            While we have automated server-side snapshots, we recommend downloading a manual backup occasionally to keep your data safe on your personal computer.
+          </p>
+        </div>
+        <button 
+          onClick={() => {
+            const data = { spending, students }
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+            const url = URL.createObjectURL(blob)
+            const a = document.createElement('a')
+            a.href = url
+            a.download = `finance_backup_${new Date().toISOString().split('T')[0]}.json`
+            a.click()
+            URL.revokeObjectURL(url)
+          }}
+          className="px-6 py-2 rounded-lg bg-muted hover:bg-muted/80 text-muted-foreground text-[10px] font-black uppercase tracking-widest transition-colors shadow-sm"
+        >
+          Download Snapshot
+        </button>
+      </div>
     </div>
   )
 }
