@@ -70,20 +70,20 @@ export default function EarningsTab() {
   const handleUpdateAttendance = async (attendanceDates) => {
     const result = await api.updateStudentAttendance(selectedStudent.id, attendanceDates)
     if (result) {
-      const updated = students.map(s =>
-        s.id === selectedStudent.id
-          ? { ...s, attendanceDates }
-          : s
-      )
-      setStudents(updated)
+      const updatedStudent = { ...selectedStudent, attendanceDates }
+      setStudents(students.map(s => s.id === selectedStudent.id ? updatedStudent : s))
+      setSelectedStudent(updatedStudent)
+      console.log(`Saved attendance for ${selectedStudent.name}`)
     }
   }
 
   const handleUpdatePayments = async (payments) => {
     const result = await api.updateStudent(selectedStudent.id, { ...selectedStudent, payments })
     if (result) {
-      setStudents(students.map(s => s.id === selectedStudent.id ? { ...s, payments } : s))
-      setSelectedStudent({ ...selectedStudent, payments })
+      const updatedStudent = { ...selectedStudent, payments }
+      setStudents(students.map(s => s.id === selectedStudent.id ? updatedStudent : s))
+      setSelectedStudent(updatedStudent)
+      console.log(`Saved payment for ${selectedStudent.name}`)
     }
   }
 
@@ -103,8 +103,9 @@ export default function EarningsTab() {
       </div>
 
       {students.length === 0 ? (
-        <div className="rounded-lg border border-border bg-input p-8 text-center text-muted-foreground">
-          <p>No students yet. Add one to get started!</p>
+        <div className="rounded-2xl border border-dashed border-border/60 bg-card/50 p-12 text-center text-muted-foreground">
+          <p className="text-xs font-bold uppercase tracking-widest">No students found</p>
+          <p className="text-[10px] opacity-40 mt-1">Add a new student to start tracking attendance and payments</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -112,7 +113,10 @@ export default function EarningsTab() {
             <StudentCard
               key={student.id}
               student={student}
-              onCalendar={() => handleOpenCalendar(student)}
+              onCalendar={() => {
+                setSelectedStudent(student)
+                setCalendarModalOpen(true)
+              }}
               onDelete={() => handleDeleteStudent(student.id)}
               onEdit={() => handleOpenEdit(student)}
             />
@@ -136,8 +140,10 @@ export default function EarningsTab() {
           onOpenChange={setCalendarModalOpen}
           studentName={selectedStudent.name}
           attendanceDates={selectedStudent.attendanceDates}
+          payments={selectedStudent.payments || []}
           avgLessonPrice={selectedStudent.price}
           onUpdateAttendance={handleUpdateAttendance}
+          onUpdatePayments={handleUpdatePayments}
         />
       )}
     </div>
