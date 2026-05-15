@@ -122,3 +122,18 @@ export async function updateStudentAttendance(id, attendanceDates) {
     return null
   }
 }
+
+export async function updateStudent(id, data) {
+  try {
+    const res = await fetch(`${API_BASE}/students/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  } catch (error) {
+    console.error('Failed to update student:', error)
+    return null
+  }
+}

@@ -64,23 +64,23 @@ export default function StudentCard({ student, onCalendar, onDelete, onEdit }) {
         <div className="absolute top-1/2 left-4 right-4 h-[1px] bg-border/20 -translate-y-1/2" />
         <div className="absolute left-1/2 top-3 bottom-3 w-[1px] bg-border/20 -translate-x-1/2" />
 
-        <div className="p-3 hover:bg-muted/10 transition-colors rounded-tl-md">
+        <div className="p-3 rounded-tl-md">
           <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">Rate</div>
           <div className="text-xs font-bold text-foreground/80">฿{formatNum(student.price)}</div>
         </div>
-        <div className="p-3 hover:bg-muted/10 transition-colors rounded-tr-md">
+        <div className="p-3 rounded-tr-md">
           <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">Freq</div>
           <div className="text-xs font-bold text-foreground/80">
             {metrics.hasData ? `${Math.round(metrics.avgDays)}d` : '—'}
           </div>
         </div>
-        <div className="p-3 hover:bg-muted/10 transition-colors rounded-bl-md">
+        <div className="p-3 rounded-bl-md">
           <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">Attend</div>
           <div className="text-xs font-bold text-foreground/80">
             {metrics.hasData ? `${metrics.lessonsPerMonth.toFixed(1)}` : '—'}
           </div>
         </div>
-        <div className="p-3 hover:bg-muted/10 transition-colors rounded-br-md">
+        <div className="p-3 rounded-br-md">
           <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">Daily</div>
           <div className="text-xs font-bold text-foreground/80">
             {metrics.hasData ? `฿${formatNum(metrics.dailyIncome)}` : '—'}
