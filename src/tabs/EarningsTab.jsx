@@ -78,6 +78,15 @@ export default function EarningsTab() {
     }
   }
 
+  const handleUpdateAdjustments = async (adjustments) => {
+    const result = await api.updateStudent(selectedStudent.id, { ...selectedStudent, adjustments })
+    if (result) {
+      const updatedStudent = { ...selectedStudent, adjustments }
+      setStudents(students.map(s => s.id === selectedStudent.id ? updatedStudent : s))
+      setSelectedStudent(updatedStudent)
+    }
+  }
+
   return (
     <div className="space-y-6 animate-in fade-in duration-700">
       <div className="flex items-center justify-between">
@@ -148,6 +157,7 @@ export default function EarningsTab() {
             open={statsModalOpen}
             onOpenChange={setStatsModalOpen}
             student={selectedStudent}
+            onUpdateAdjustments={handleUpdateAdjustments}
           />
         </>
       )}

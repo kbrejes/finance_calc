@@ -89,7 +89,11 @@ export function getCalculatedStudentMetrics(student) {
   
   const payments = student.payments || [];
   const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
-  const balance = totalPaid - totalCost;
+  
+  const adjustments = student.adjustments || [];
+  const totalAdjustments = adjustments.reduce((sum, a) => sum + (a.amount || 0), 0);
+  
+  const balance = totalPaid - totalCost + totalAdjustments;
 
   if (!student.attendanceDates || student.attendanceDates.length < 2) {
     return {
@@ -100,6 +104,7 @@ export function getCalculatedStudentMetrics(student) {
       monthlyProjection: 0,
       totalCost,
       totalPaid,
+      totalAdjustments,
       balance,
       ltv: totalCost
     };
@@ -128,6 +133,7 @@ export function getCalculatedStudentMetrics(student) {
     ltv,
     totalCost,
     totalPaid,
+    totalAdjustments,
     balance
   };
 }
