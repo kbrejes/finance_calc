@@ -114,6 +114,7 @@ export default function CalendarModal({ open, onOpenChange, studentName, attenda
                 const checkDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
                 checkDate.setHours(0, 0, 0, 0)
                 const isFuture = day && checkDate > today
+                const isToday = day && checkDate.getTime() === today.getTime()
                 
                 return (
                   <button
@@ -127,6 +128,8 @@ export default function CalendarModal({ open, onOpenChange, studentName, attenda
                         ? 'text-muted-foreground/20 cursor-not-allowed'
                         : isMarked
                         ? 'bg-gradient-to-br from-[#475569] via-[#334155] to-[#0F172A] text-white shadow-[0_0_15px_rgba(51,65,85,0.4)] border border-slate-600/50'
+                        : isToday
+                        ? 'border-2 border-primary shadow-[0_0_10px_rgba(var(--primary),0.2)] bg-muted/50 text-foreground'
                         : 'border border-border/40 text-muted-foreground/60 hover:bg-muted/30 hover:text-foreground'
                     }`}
                   >
