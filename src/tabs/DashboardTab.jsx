@@ -42,17 +42,27 @@ ChartJS.register(
 export default function DashboardTab() {
   const [spending, setSpending] = useState([])
   const [students, setStudents] = useState([])
+  const [assets, setAssets] = useState({ financial: [] })
   const [currentDate, setCurrentDate] = useState(new Date())
   const [isZoomed, setIsZoomed] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     const loadData = async () => {
-      const [spendingData, studentsData] = await Promise.all([
-        api.fetchSpending(),
-        api.fetchStudents(),
-      ])
-      setSpending(spendingData || [])
-      setStudents(studentsData || [])
+      try {
+        const [studentData, spendingData, assetData] = await Promise.all([
+          api.fetchStudents(),
+          api.fetchSpending(),
+          api.fetchAssets()
+        ])
+        setStudents(studentData || [])
+        setSpending(spendingData || [])
+        if (assetData) setAssets(assetData)
+      } catch (e) {
+        console.error("Error loading dashboard data", e)
+      } finally {
+        setIsLoading(false)
+      }
     }
     loadData()
   }, [])
@@ -117,6 +127,11 @@ export default function DashboardTab() {
       return dAcc + (cost || 0)
     }, 0), 0)
 
+    const totalLiquidCapital = (assets.financial || []).reduce((sum, acc) => {
+      const multiplier = acc.currency === 'USDT' ? 36 : (acc.currency === 'USD' ? 35 : 1)
+      return sum + ((acc.value || 0) * multiplier)
+    }, 0)
+
     return { 
       cumulativeIncome, 
       cumulativeSpending, 
@@ -125,9 +140,10 @@ export default function DashboardTab() {
       dailyItems,
       totalIncome: incSum,
       totalSpending: spendSum,
-      balance: totalLifetimeIncome
+      balance: totalLifetimeIncome,
+      totalLiquidCapital
     }
-  }, [students, spending, currentMonth, currentYear, daysInMonth])
+  }, [students, spending, assets, currentMonth, currentYear, daysInMonth])
 
   const chartData = {
     labels: daysArray.map(d => `${d}`),
@@ -190,13 +206,19 @@ export default function DashboardTab() {
       {/* Header with Balance and Month Switcher */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div className="flex items-center gap-4">
-          <div className="p-3 rounded-2xl bg-card border border-border/40 shadow-sm">
-            <div className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest mb-1">Total Net Liquidity</div>
-            <div className={`text-xl font-black ${stats.balance >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+          <div className="p-3 rounded-2xl bg-card border border-border/40 shadow-sm min-w-[140px]">
+            <div className="text-[10px] font-black text-emerald-400/60 uppercase tracking-widest mb-1">Liquid Capital</div>
+            <div className="text-xl font-black text-emerald-500">
+              ฿{formatNum(stats.totalLiquidCapital)}
+            </div>
+          </div>
+          <div className="p-3 rounded-2xl bg-card border border-border/40 shadow-sm min-w-[140px]">
+            <div className="text-[10px] font-black text-primary/60 uppercase tracking-widest mb-1">Student Income</div>
+            <div className="text-xl font-black text-primary">
               ฿{formatNum(stats.balance)}
             </div>
           </div>
-          <div className="hidden sm:block">
+          <div className="hidden lg:block ml-4">
             <h1 className="text-xl font-black text-foreground/90 uppercase tracking-tight">{monthName} {currentYear}</h1>
             <p className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-widest">Financial Terminal v2.1</p>
           </div>

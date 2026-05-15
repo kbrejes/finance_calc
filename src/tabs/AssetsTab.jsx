@@ -49,8 +49,6 @@ export default function AssetsTab() {
             ...prev,
             ...data
           }))
-        } else {
-          api.saveAssets(assets)
         }
       } catch (e) {
         console.error('Failed to load assets', e)
@@ -59,6 +57,10 @@ export default function AssetsTab() {
       }
     }
     load()
+    
+    // Refresh when the window gets focus (e.g. after switching back from another tab)
+    window.addEventListener('focus', load)
+    return () => window.removeEventListener('focus', load)
   }, [])
 
   const handleSave = async (newAssets) => {
