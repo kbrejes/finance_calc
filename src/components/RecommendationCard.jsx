@@ -51,10 +51,10 @@ export default function RecommendationCard({ balance, students, spendingItems })
   const Icon = rec.icon
 
   const bgColors = {
-    success: 'bg-success/10 border-success/30',
-    warning: 'bg-warning/10 border-warning/30',
-    danger: 'bg-danger/10 border-danger/30',
-    info: 'bg-primary/10 border-primary/30',
+    success: 'bg-success/10',
+    warning: 'bg-warning/10',
+    danger: 'bg-danger/10',
+    info: 'bg-primary/10',
   }
 
   const iconColors = {
@@ -65,7 +65,7 @@ export default function RecommendationCard({ balance, students, spendingItems })
   }
 
   return (
-    <div className={`rounded-lg border ${bgColors[rec.type]} p-4 space-y-3`}>
+    <div className={`rounded-lg ${bgColors[rec.type]} p-4 space-y-3`}>
       <div className="flex items-start gap-3">
         <Icon className={`h-5 w-5 ${iconColors[rec.type]} mt-0.5 flex-shrink-0`} />
         <div className="space-y-1">

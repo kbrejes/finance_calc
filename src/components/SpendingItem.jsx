@@ -43,7 +43,7 @@ export default function SpendingItem({
     <div
       onClick={() => onOpenCalendar(item)}
       className="
-        flex items-center gap-3 p-4 rounded-lg border border-border bg-input
+        flex items-center gap-3 p-4 rounded-lg bg-input
         hover:bg-input/80 cursor-pointer transition-colors
       "
     >

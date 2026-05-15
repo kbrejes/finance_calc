@@ -14,7 +14,7 @@ export default function StudentCard({ student, onCalendar, onDelete, onEdit }) {
 
   return (
     <div 
-      className="group relative rounded-xl border border-border bg-card p-4 transition-all hover:border-primary/50 cursor-pointer shadow-sm overflow-hidden"
+      className="group relative rounded-xl bg-card p-4 transition-all hover:bg-muted/5 cursor-pointer shadow-sm overflow-hidden"
       onClick={onCalendar}
     >
       {/* Header */}
@@ -58,25 +58,29 @@ export default function StudentCard({ student, onCalendar, onDelete, onEdit }) {
         </div>
       </div>
 
-      {/* Split Widget Stats */}
-      <div className="grid grid-cols-2 overflow-hidden rounded-lg border border-border/50 bg-muted/5">
-        <div className="p-2.5 border-r border-b border-border/30 hover:bg-muted/10 transition-colors">
+      {/* Split Widget Stats with Inset Dividers */}
+      <div className="relative grid grid-cols-2 rounded-lg bg-muted/5 p-1">
+        {/* Dividers */}
+        <div className="absolute top-1/2 left-4 right-4 h-[1px] bg-border/20 -translate-y-1/2" />
+        <div className="absolute left-1/2 top-3 bottom-3 w-[1px] bg-border/20 -translate-x-1/2" />
+
+        <div className="p-3 hover:bg-muted/10 transition-colors rounded-tl-md">
           <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">Rate</div>
           <div className="text-xs font-bold text-foreground/80">฿{formatNum(student.price)}</div>
         </div>
-        <div className="p-2.5 border-b border-border/30 hover:bg-muted/10 transition-colors">
+        <div className="p-3 hover:bg-muted/10 transition-colors rounded-tr-md">
           <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">Freq</div>
           <div className="text-xs font-bold text-foreground/80">
             {metrics.hasData ? `${Math.round(metrics.avgDays)}d` : '—'}
           </div>
         </div>
-        <div className="p-2.5 border-r border-border/30 hover:bg-muted/10 transition-colors">
+        <div className="p-3 hover:bg-muted/10 transition-colors rounded-bl-md">
           <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">Attend</div>
           <div className="text-xs font-bold text-foreground/80">
             {metrics.hasData ? `${metrics.lessonsPerMonth.toFixed(1)}` : '—'}
           </div>
         </div>
-        <div className="p-2.5 hover:bg-muted/10 transition-colors">
+        <div className="p-3 hover:bg-muted/10 transition-colors rounded-br-md">
           <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">Daily</div>
           <div className="text-xs font-bold text-foreground/80">
             {metrics.hasData ? `฿${formatNum(metrics.dailyIncome)}` : '—'}

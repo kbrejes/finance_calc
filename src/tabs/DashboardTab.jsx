@@ -210,7 +210,7 @@ export default function DashboardTab() {
       />
 
       {/* Chart Section */}
-      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
+      <div className="rounded-lg bg-card p-6 shadow-sm">
         <div className="mb-6">
           <h3 className="text-lg font-semibold text-foreground">Cash Flow Timeline</h3>
           <p className="text-xs text-muted-foreground">Cumulative income vs spending for current month</p>
