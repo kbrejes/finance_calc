@@ -104,22 +104,25 @@ export default function SpendingTab() {
         return d.cost || 0
       }
 
+      const normalize = (name) => (name || '').trim().toLowerCase()
+
       // Track totals per account
       oldDates.forEach(d => {
-        const acc = (typeof d === 'string' ? accountName : (d.account || accountName))
+        const rawAcc = (typeof d === 'string' ? accountName : (d.account || accountName))
+        const acc = normalize(rawAcc)
         if (acc !== 'none') {
           oldTotalByAcc[acc] = (oldTotalByAcc[acc] || 0) + getCost(d)
         }
       })
       
       dates.forEach(d => {
-        const acc = (typeof d === 'string' ? accountName : (d.account || accountName))
+        const rawAcc = (typeof d === 'string' ? accountName : (d.account || accountName))
+        const acc = normalize(rawAcc)
         if (acc !== 'none') {
           newTotalByAcc[acc] = (newTotalByAcc[acc] || 0) + getCost(d)
         }
       })
 
-      // Combine all affected accounts
       const allAccs = new Set([...Object.keys(oldTotalByAcc), ...Object.keys(newTotalByAcc)])
       let anyChange = false
       
@@ -127,19 +130,22 @@ export default function SpendingTab() {
       if (assetData && assetData.financial) {
         let updatedFinancial = [...assetData.financial]
         
-        allAccs.forEach(acc => {
-          const diff = (newTotalByAcc[acc] || 0) - (oldTotalByAcc[acc] || 0)
-          console.log(`[Deduction] Account: ${acc}, Diff: ${diff}`)
+        allAccs.forEach(accKey => {
+          const diff = (newTotalByAcc[accKey] || 0) - (oldTotalByAcc[accKey] || 0)
           if (diff !== 0) {
             anyChange = true
-            updatedFinancial = updatedFinancial.map(f => 
-              f.name === acc ? { ...f, value: (f.value || 0) - diff } : f
-            )
+            updatedFinancial = updatedFinancial.map(f => {
+              if (normalize(f.name) === accKey) {
+                console.log(`[Deduction] Match found: ${f.name}. Old value: ${f.value}, Subtracting: ${diff}`)
+                return { ...f, value: (parseFloat(f.value) || 0) - diff }
+              }
+              return f
+            })
           }
         })
         
         if (anyChange) {
-          console.log('[Deduction] Saving updated assets...')
+          console.log('[Deduction] Saving atomic update to vault...')
           await api.saveAssets({ ...assetData, financial: updatedFinancial })
           setAccounts(updatedFinancial)
         }
