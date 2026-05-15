@@ -14,10 +14,10 @@ const DIGITAL_ICONS = {
 export default function AssetsTab() {
   const [assets, setAssets] = useState({
     physical: [
-      { name: 'Honda PCX 2017', min: 20000, max: 30000 },
-      { name: 'Marshall Kilburn III', min: 8000, max: 10500 },
-      { name: 'Pioneer FLX 4', min: 5000, max: 7500 },
-      { name: 'Longboard', min: 1500, max: 3500 }
+      { name: 'Honda PCX 2017', value: '20000-30000' },
+      { name: 'Marshall Kilburn III', value: '8000-10500' },
+      { name: 'Pioneer FLX 4', value: '5000-7500' },
+      { name: 'Longboard', value: '1500-3500' }
     ],
     financial: [
       { name: 'Cash', value: 5723, currency: 'THB' },
@@ -72,7 +72,7 @@ export default function AssetsTab() {
 
   const addItem = (section) => {
     const defaults = {
-      physical: { name: 'New Physical Asset', min: 0, max: 0 },
+      physical: { name: 'New Item', value: '0' },
       financial: { name: 'New Account', value: 0, currency: 'THB' },
       vitals: { name: 'New Document', exp: new Date().toISOString().split('T')[0], type: 'standard' },
       digital: { name: 'New Channel', sub: 0, posts: 0 }
@@ -104,6 +104,7 @@ export default function AssetsTab() {
 
   if (isLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Initializing Vault...</div>
 
+  // Summaries
   const financialList = assets.financial || []
   const totalFinancial = financialList.reduce((sum, item) => {
     const multiplier = item.currency === 'USDT' ? 36 : (item.currency === 'USD' ? 35 : 1)
@@ -111,12 +112,22 @@ export default function AssetsTab() {
   }, 0)
 
   const physicalList = assets.physical || []
-  const physicalMin = physicalList.reduce((sum, item) => sum + (item.min || 0), 0)
-  const physicalMax = physicalList.reduce((sum, item) => sum + (item.max || 0), 0)
+  let physicalMin = 0
+  let physicalMax = 0
+  physicalList.forEach(item => {
+    const parts = (item.value || '0').split('-').map(p => parseInt(p.replace(/[^0-9]/g, '')) || 0)
+    if (parts.length === 2) {
+      physicalMin += parts[0]
+      physicalMax += parts[1]
+    } else {
+      physicalMin += parts[0]
+      physicalMax += parts[0]
+    }
+  })
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
-      {/* Financial & Documents (Top Row) */}
+      {/* Financial & Documents */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Financial Assets */}
         <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
@@ -135,7 +146,7 @@ export default function AssetsTab() {
             </button>
           </div>
           <div className="space-y-3">
-            {(assets.financial || []).map((item, i) => (
+            {financialList.map((item, i) => (
               <div key={i} className="group flex items-center justify-between p-3 rounded-xl bg-muted/5 border border-border/20 hover:border-border/40 transition-all">
                 <input
                   type="text"
@@ -261,7 +272,7 @@ export default function AssetsTab() {
             </div>
             <div>
               <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Physical Inventory</h3>
-              <div className="text-[10px] font-bold text-muted-foreground/50 mt-0.5">Est: ฿{formatNum(physicalMin)} - ฿{formatNum(physicalMax)}</div>
+              <div className="text-[10px] font-bold text-muted-foreground/50 mt-0.5">Total Est: ฿{formatNum(physicalMin)} - ฿{formatNum(physicalMax)}</div>
             </div>
           </div>
           <button onClick={() => addItem('physical')} className="p-1.5 rounded-full hover:bg-muted text-muted-foreground/40 hover:text-primary transition-all opacity-0 group-hover/section:opacity-100">
@@ -269,7 +280,7 @@ export default function AssetsTab() {
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {(assets.physical || []).map((item, i) => (
+          {physicalList.map((item, i) => (
             <div key={i} className="relative group p-4 rounded-xl bg-muted/5 border border-border/20 hover:border-border/40 transition-all space-y-3">
               <button onClick={() => removeItem('physical', i)} className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 text-muted-foreground/30 hover:text-danger transition-all">
                 <Trash2 className="h-3 w-3" />
@@ -280,25 +291,15 @@ export default function AssetsTab() {
                 onChange={(e) => updateSection('physical', i, 'name', e.target.value)}
                 className="text-[10px] font-black text-foreground/70 uppercase tracking-tight bg-transparent focus:outline-none w-full pr-6"
               />
-              <div className="flex flex-col gap-1.5">
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] text-muted-foreground/50 font-bold uppercase">Min ฿</span>
-                  <input
-                    type="number"
-                    value={item.min}
-                    onChange={(e) => updateSection('physical', i, 'min', parseInt(e.target.value) || 0)}
-                    className="w-20 bg-transparent text-right text-xs font-black text-foreground/80 focus:outline-none hover:bg-primary/5 px-1 rounded transition-colors"
-                  />
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-[9px] text-muted-foreground/50 font-bold uppercase">Max ฿</span>
-                  <input
-                    type="number"
-                    value={item.max}
-                    onChange={(e) => updateSection('physical', i, 'max', parseInt(e.target.value) || 0)}
-                    className="w-20 bg-transparent text-right text-xs font-black text-foreground/80 focus:outline-none hover:bg-primary/5 px-1 rounded transition-colors"
-                  />
-                </div>
+              <div className="space-y-1">
+                <div className="text-[8px] uppercase tracking-widest text-muted-foreground/40 font-bold mb-1">Market Value (฿)</div>
+                <input
+                  type="text"
+                  value={item.value}
+                  onChange={(e) => updateSection('physical', i, 'value', e.target.value)}
+                  placeholder="e.g. 20000-30000"
+                  className="w-full bg-transparent text-sm font-black text-foreground/80 focus:outline-none hover:bg-primary/5 px-1 rounded transition-colors"
+                />
               </div>
             </div>
           ))}
