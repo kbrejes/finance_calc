@@ -5,7 +5,7 @@ import SpendingModal from '../components/SpendingModal'
 import SpendingItem from '../components/SpendingItem'
 import SpendingCalendarModal from '../components/SpendingCalendarModal'
 import * as api from '../lib/api'
-import { getCalculatedSpendingMetrics } from '../lib/financeUtils'
+import { getCalculatedSpendingMetrics, formatNum } from '../lib/financeUtils'
 import {
   Select,
   SelectContent,
