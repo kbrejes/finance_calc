@@ -44,6 +44,9 @@ export default function StudentStatsModal({ open, onOpenChange, student, onUpdat
     { label: 'Total Paid', value: `฿${formatNum(metrics.totalPaid)}`, icon: TrendingUp },
     { label: 'Delivered', value: `฿${formatNum(metrics.totalCost)}`, icon: BookOpen },
     { label: 'Adjustments', value: `฿${formatNum(metrics.totalAdjustments)}`, icon: History },
+    { label: 'Projection', value: `฿${formatNum(metrics.monthlyProjection)}`, icon: Activity },
+    { label: 'Frequency', value: metrics.hasData ? `${metrics.avgDays.toFixed(1)} Days` : '—', icon: Clock },
+    { label: 'Daily Yield', value: metrics.hasData ? `฿${formatNum(metrics.dailyIncome)}` : '—', icon: TrendingUp },
   ]
 
   return (
