@@ -76,12 +76,12 @@ export default function SpendingTab() {
     if (!selectedSpendingItem) return
     const result = await api.updateSpendingPurchaseDates(selectedSpendingItem.id, dates)
     if (result) {
+      const updatedItem = { ...selectedSpendingItem, purchaseDates: dates }
       const updated = spending.map(item =>
-        item.id === selectedSpendingItem.id
-          ? { ...item, purchaseDates: dates }
-          : item
+        item.id === selectedSpendingItem.id ? updatedItem : item
       )
       setSpending(updated)
+      setSelectedSpendingItem(updatedItem) // Keep the modal in sync
     }
   }
 
@@ -172,13 +172,8 @@ export default function SpendingTab() {
         <SpendingCalendarModal
           open={calendarOpen}
           onOpenChange={setCalendarOpen}
-          itemName={selectedSpendingItem.className}
-          category={selectedSpendingItem.category}
-          isEssential={selectedSpendingItem.isEssential}
-          purchaseDates={selectedSpendingItem.purchaseDates}
-          pricePerUnit={selectedSpendingItem.pricePerUnit}
-          units={selectedSpendingItem.units}
-          onUpdatePurchaseDates={handleUpdatePurchaseDates}
+          item={selectedSpendingItem}
+          onUpdateDates={handleUpdatePurchaseDates}
         />
       )}
     </div>

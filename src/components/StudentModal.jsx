@@ -1,21 +1,34 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from './ui/button'
 import { Input } from './ui/input'
 import { Label } from './ui/label'
 import {
   Dialog,
   DialogContent,
-  DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogFooter,
 } from './ui/dialog'
 
-export default function StudentModal({ open, onOpenChange, onSubmit }) {
+export default function StudentModal({ open, onOpenChange, onSubmit, initialData }) {
   const [formData, setFormData] = useState({
     name: '',
     price: '',
   })
+
+  useEffect(() => {
+    if (initialData) {
+      setFormData({
+        name: initialData.name || '',
+        price: initialData.price || '',
+      })
+    } else {
+      setFormData({
+        name: '',
+        price: '',
+      })
+    }
+  }, [initialData, open])
 
   const handleChange = (field, value) => {
     setFormData(prev => ({
@@ -35,7 +48,6 @@ export default function StudentModal({ open, onOpenChange, onSubmit }) {
       return
     }
     onSubmit(formData)
-    setFormData({ name: '', price: '' })
     onOpenChange(false)
   }
 
@@ -43,12 +55,12 @@ export default function StudentModal({ open, onOpenChange, onSubmit }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
-          <DialogTitle>Add Student</DialogTitle>
+          <DialogTitle>{initialData ? 'Edit Student' : 'Add Student'}</DialogTitle>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="space-y-2">
-            <Label htmlFor="name">Student Name</Label>
+            <Label htmlFor="name" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Student Name</Label>
             <Input
               id="name"
               placeholder="e.g., Anna"
@@ -59,7 +71,7 @@ export default function StudentModal({ open, onOpenChange, onSubmit }) {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="price">Lesson Price (฿)</Label>
+            <Label htmlFor="price" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Lesson Price (฿)</Label>
             <Input
               id="price"
               type="number"
@@ -77,7 +89,7 @@ export default function StudentModal({ open, onOpenChange, onSubmit }) {
               Cancel
             </Button>
             <Button type="submit" variant="default">
-              Save Student
+              {initialData ? 'Update Student' : 'Save Student'}
             </Button>
           </DialogFooter>
         </form>

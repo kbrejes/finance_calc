@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Button } from './ui/button'
-import { ChevronLeft, ChevronRight } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
 } from './ui/dialog'
+import * as DialogPrimitive from "@radix-ui/react-dialog"
 
 export default function CalendarModal({ open, onOpenChange, studentName, attendanceDates, onUpdateAttendance }) {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -39,7 +38,9 @@ export default function CalendarModal({ open, onOpenChange, studentName, attenda
     } else {
       newMarked.add(dateStr)
     }
+    const updatedDates = Array.from(newMarked)
     setMarkedDates(newMarked)
+    onUpdateAttendance(updatedDates) // Auto-save
   }
 
   const handlePrevMonth = () => {
@@ -48,11 +49,6 @@ export default function CalendarModal({ open, onOpenChange, studentName, attenda
 
   const handleNextMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))
-  }
-
-  const handleSave = () => {
-    onUpdateAttendance(Array.from(markedDates))
-    onOpenChange(false)
   }
 
   const daysInMonth = getDaysInMonth(currentDate)
@@ -72,42 +68,40 @@ export default function CalendarModal({ open, onOpenChange, studentName, attenda
     rows.push(days.slice(i, i + 7))
   }
 
-  const attendanceCount = markedDates.size
-  const avgLessonPrice = 700 // Default, will be passed from parent
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[420px]">
-        <DialogHeader>
-          <DialogTitle>Attendance — {studentName}</DialogTitle>
+      <DialogContent className="sm:max-w-[380px] p-6 border-border/40 bg-card/95 backdrop-blur-xl">
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+
+        <DialogHeader className="mb-6">
+          <DialogTitle className="text-xl font-bold tracking-tight text-foreground/90">{studentName}</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Calendar Navigation */}
-          <div className="flex items-center justify-between">
-            <Button
-              variant="ghost"
-              size="sm"
+          <div className="flex items-center justify-between px-1">
+            <button
               onClick={handlePrevMonth}
-              className="h-8 w-8 p-0"
+              className="p-1 hover:bg-muted rounded-full transition-colors"
             >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <span className="text-sm font-semibold">{monthName}</span>
-            <Button
-              variant="ghost"
-              size="sm"
+              <ChevronLeft className="h-5 w-5 text-muted-foreground" />
+            </button>
+            <span className="text-sm font-bold text-foreground/80 tracking-wide">{monthName}</span>
+            <button
               onClick={handleNextMonth}
-              className="h-8 w-8 p-0"
+              className="p-1 hover:bg-muted rounded-full transition-colors"
             >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </button>
           </div>
 
           {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-1">
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} className="h-8 flex items-center justify-center text-xs font-semibold text-muted-foreground">
+          <div className="grid grid-cols-7 gap-2">
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
+              <div key={day} className="h-8 flex items-center justify-center text-[10px] font-black text-muted-foreground/30">
                 {day}
               </div>
             ))}
@@ -126,14 +120,14 @@ export default function CalendarModal({ open, onOpenChange, studentName, attenda
                     key={`${weekIdx}-${dayIdx}`}
                     onClick={() => day && !isFuture && toggleDate(day)}
                     disabled={!day || isFuture}
-                    className={`h-8 rounded text-xs font-medium transition-colors ${
+                    className={`h-9 w-9 rounded-lg text-xs font-bold transition-all duration-200 ${
                       !day
-                        ? 'text-transparent'
+                        ? 'bg-transparent border-transparent'
                         : isFuture
-                        ? 'text-muted-foreground/30 cursor-not-allowed'
+                        ? 'text-muted-foreground/20 cursor-not-allowed'
                         : isMarked
-                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
-                        : 'border border-border text-foreground hover:bg-input'
+                        ? 'bg-gradient-to-br from-[#475569] via-[#334155] to-[#0F172A] text-white shadow-[0_0_15px_rgba(51,65,85,0.4)] border border-slate-600/50'
+                        : 'border border-border/40 text-muted-foreground/60 hover:bg-muted/30 hover:text-foreground'
                     }`}
                   >
                     {day}
@@ -142,28 +136,7 @@ export default function CalendarModal({ open, onOpenChange, studentName, attenda
               })
             )}
           </div>
-
-          {/* Stats */}
-          <div className="rounded-lg bg-input p-3 space-y-1 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Lessons this month:</span>
-              <span className="font-semibold">{attendanceCount}</span>
-            </div>
-            <div className="flex justify-between text-primary">
-              <span className="text-muted-foreground">Est. income:</span>
-              <span className="font-mono">฿{(attendanceCount * avgLessonPrice).toLocaleString()}</span>
-            </div>
-          </div>
         </div>
-
-        <DialogFooter>
-          <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
-          <Button type="button" variant="default" onClick={handleSave}>
-            Save
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

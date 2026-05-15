@@ -1,49 +1,27 @@
 import { useState, useEffect } from 'react'
-import { Button } from './ui/button'
-import { ChevronLeft, ChevronRight, Trash2 } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Trash2 } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogFooter,
-  DialogDescription,
 } from './ui/dialog'
 import { Input } from './ui/input'
-import { Label } from './ui/label'
+import * as DialogPrimitive from "@radix-ui/react-dialog"
 
-export default function SpendingCalendarModal({
-  open,
-  onOpenChange,
-  itemName,
-  category,
-  isEssential,
-  purchaseDates,
-  pricePerUnit,
-  units,
-  onUpdatePurchaseDates,
-}) {
+export default function SpendingCalendarModal({ open, onOpenChange, item, onUpdateDates }) {
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [markedDates, setMarkedDates] = useState(new Map())
-  
-  // Cost Dialog State
-  const [costDialogOpen, setCostDialogOpen] = useState(false)
-  const [selectedDateStr, setSelectedDateStr] = useState(null)
+  const [selectedDate, setSelectedDate] = useState(null)
   const [costInput, setCostInput] = useState('')
+  const [isEditing, setIsEditing] = useState(false)
 
-  useEffect(() => {
-    if (purchaseDates) {
-      const dateMap = new Map()
-      purchaseDates.forEach(entry => {
-        if (typeof entry === 'string') {
-          dateMap.set(entry, pricePerUnit * units)
-        } else if (entry.date) {
-          dateMap.set(entry.date, entry.cost || pricePerUnit * units)
-        }
-      })
-      setMarkedDates(dateMap)
-    }
-  }, [purchaseDates, open, pricePerUnit, units])
+  const getDaysInMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+  }
+
+  const getFirstDayOfMonth = (date) => {
+    return new Date(date.getFullYear(), date.getMonth(), 1).getDay()
+  }
 
   const formatDate = (year, month, day) => {
     return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
@@ -51,25 +29,41 @@ export default function SpendingCalendarModal({
 
   const handleDayClick = (day) => {
     const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day)
-    const existingCost = markedDates.get(dateStr)
+    const existing = item.purchaseDates?.find(p => (typeof p === 'string' ? p : p.date) === dateStr)
     
-    setSelectedDateStr(dateStr)
-    setCostInput(String(existingCost !== undefined ? existingCost : pricePerUnit * units))
-    setCostDialogOpen(true)
+    setSelectedDate(dateStr)
+    if (existing) {
+      setIsEditing(true)
+      const cost = typeof existing === 'string' ? (item.pricePerUnit * item.units) : existing.cost
+      setCostInput(cost.toString())
+    } else {
+      setIsEditing(false)
+      setCostInput((item.pricePerUnit * item.units).toString())
+    }
   }
 
-  const handleSaveCost = () => {
-    const newMarked = new Map(markedDates)
-    newMarked.set(selectedDateStr, parseFloat(costInput) || 0)
-    setMarkedDates(newMarked)
-    setCostDialogOpen(false)
+  const handleSaveEntry = () => {
+    if (!selectedDate || !costInput) return
+    const newEntry = { date: selectedDate, cost: parseFloat(costInput) }
+    
+    let updated
+    if (isEditing) {
+      updated = item.purchaseDates.map(p => 
+        (typeof p === 'string' ? p : p.date) === selectedDate ? newEntry : p
+      )
+    } else {
+      updated = [...(item.purchaseDates || []), newEntry]
+    }
+    
+    onUpdateDates(updated)
+    setSelectedDate(null)
   }
 
-  const handleDeletePurchase = () => {
-    const newMarked = new Map(markedDates)
-    newMarked.delete(selectedDateStr)
-    setMarkedDates(newMarked)
-    setCostDialogOpen(false)
+  const handleRemoveEntry = () => {
+    if (!selectedDate) return
+    const updated = item.purchaseDates.filter(p => (typeof p === 'string' ? p : p.date) !== selectedDate)
+    onUpdateDates(updated)
+    setSelectedDate(null)
   }
 
   const handlePrevMonth = () => {
@@ -80,151 +74,133 @@ export default function SpendingCalendarModal({
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))
   }
 
-  const handleFinalSave = () => {
-    const purchaseDatesArray = Array.from(markedDates.entries()).map(([date, cost]) => ({
-      date,
-      cost,
-    }))
-    onUpdatePurchaseDates(purchaseDatesArray)
-    onOpenChange(false)
-  }
-
-  const getDaysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
-  const getFirstDayOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay()
-
   const daysInMonth = getDaysInMonth(currentDate)
   const firstDay = getFirstDayOfMonth(currentDate)
   const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })
-
+  
   const days = []
-  for (let i = 0; i < firstDay; i++) days.push(null)
-  for (let i = 1; i <= daysInMonth; i++) days.push(i)
+  for (let i = 0; i < firstDay; i++) {
+    days.push(null)
+  }
+  for (let i = 1; i <= daysInMonth; i++) {
+    days.push(i)
+  }
 
-  const purchaseCount = markedDates.size
-  const totalCost = Array.from(markedDates.values()).reduce((sum, cost) => sum + cost, 0)
+  const rows = []
+  for (let i = 0; i < days.length; i += 7) {
+    rows.push(days.slice(i, i + 7))
+  }
 
   return (
-    <>
-      <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[420px]">
-          <DialogHeader>
-            <div className="flex items-center justify-between pr-6">
-              <DialogTitle>{itemName}</DialogTitle>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                  {category}
-                </span>
-                <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium ${isEssential ? 'border border-border text-muted-foreground' : 'bg-warning text-white'}`}>
-                  {isEssential ? 'Essential' : 'Optional'}
-                </span>
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[380px] p-6 border-border/40 bg-card/95 backdrop-blur-xl">
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogPrimitive.Close>
+
+        <DialogHeader className="mb-6">
+          <DialogTitle className="text-xl font-bold tracking-tight text-foreground/90">{item?.className || 'Loading...'}</DialogTitle>
+          <div className="text-[10px] uppercase tracking-widest text-muted-foreground/50 font-bold">
+            {item?.category || 'Category'} • {item?.isEssential ? 'Essential' : 'Optional'}
+          </div>
+        </DialogHeader>
+
+        <div className="space-y-6">
+          {/* Calendar Navigation */}
+          <div className="flex items-center justify-between px-1">
+            <button onClick={handlePrevMonth} className="p-1 hover:bg-muted rounded-full transition-colors">
+              <ChevronLeft className="h-5 w-5 text-muted-foreground" />
+            </button>
+            <span className="text-sm font-bold text-foreground/80 tracking-wide">{monthName}</span>
+            <button onClick={handleNextMonth} className="p-1 hover:bg-muted rounded-full transition-colors">
+              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+            </button>
+          </div>
+
+          {/* Calendar Grid */}
+          <div className="grid grid-cols-7 gap-2">
+            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
+              <div key={day} className="h-8 flex items-center justify-center text-[10px] font-black text-muted-foreground/30">
+                {day}
               </div>
-            </div>
-          </DialogHeader>
-
-          <div className="space-y-6">
-            {/* Month Navigation */}
-            <div className="flex items-center justify-between">
-              <Button variant="ghost" size="icon" onClick={handlePrevMonth}>
-                <ChevronLeft className="h-4 w-4" />
-              </Button>
-              <div className="font-semibold text-sm">{monthName}</div>
-              <Button variant="ghost" size="icon" onClick={handleNextMonth}>
-                <ChevronRight className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {/* Calendar Grid */}
-            <div className="grid grid-cols-7 gap-1.5">
-              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-                <div key={day} className="text-center text-[10px] font-bold text-muted-foreground uppercase pb-1">
-                  {day}
-                </div>
-              ))}
-
-              {days.map((day, idx) => {
+            ))}
+            {rows.map((week, weekIdx) =>
+              week.map((day, dayIdx) => {
+                const dateStr = day ? formatDate(currentDate.getFullYear(), currentDate.getMonth(), day) : ''
+                const isMarked = day && item?.purchaseDates?.find(p => (typeof p === 'string' ? p : p.date) === dateStr)
+                const isCurrentlySelected = selectedDate === dateStr
+                
                 const today = new Date()
                 today.setHours(0, 0, 0, 0)
-                const checkDate = day ? new Date(currentDate.getFullYear(), currentDate.getMonth(), day) : null
-                if (checkDate) checkDate.setHours(0, 0, 0, 0)
-                
-                const isFuture = checkDate && checkDate > today
-                const dateStr = day ? formatDate(currentDate.getFullYear(), currentDate.getMonth(), day) : ''
-                const isMarked = day && markedDates.has(dateStr)
+                const checkDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+                checkDate.setHours(0, 0, 0, 0)
+                const isFuture = day && checkDate > today
                 
                 return (
                   <button
-                    key={idx}
+                    key={`${weekIdx}-${dayIdx}`}
                     onClick={() => day && !isFuture && handleDayClick(day)}
                     disabled={!day || isFuture}
-                    className={`
-                      aspect-square text-sm font-medium rounded-md transition-all
-                      flex items-center justify-center
-                      ${!day ? 'invisible' : ''}
-                      ${isFuture ? 'opacity-20 cursor-not-allowed' : ''}
-                      ${isMarked && !isFuture ? 'bg-[#334155] text-white shadow-[0_0_15px_rgba(51,65,85,0.4)] border border-slate-600/30' : 'bg-muted hover:bg-muted/80 text-muted-foreground hover:text-foreground'}
-                    `}
+                    className={`h-9 w-9 rounded-lg text-xs font-bold transition-all duration-200 ${
+                      !day
+                        ? 'bg-transparent border-transparent'
+                        : isFuture
+                        ? 'text-muted-foreground/20 cursor-not-allowed'
+                        : isMarked
+                        ? 'bg-gradient-to-br from-[#475569] via-[#334155] to-[#0F172A] text-white shadow-[0_0_15px_rgba(51,65,85,0.4)] border border-slate-600/50'
+                        : isCurrentlySelected
+                        ? 'border-2 border-primary bg-primary/10 text-foreground animate-pulse'
+                        : 'border border-border/40 text-muted-foreground/60 hover:bg-muted/30 hover:text-foreground'
+                    }`}
                   >
                     {day}
                   </button>
                 )
-              })}
-            </div>
+              })
+            )}
           </div>
 
-          <DialogFooter className="gap-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleFinalSave}>
-              Save Changes
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Focused Cost Entry Dialog (The Pop-up) */}
-      <Dialog open={costDialogOpen} onOpenChange={setCostDialogOpen}>
-        <DialogContent className="sm:max-w-[300px]">
-          <DialogHeader>
-            <DialogTitle>{markedDates.has(selectedDateStr) ? 'Edit Purchase' : 'Add Purchase'}</DialogTitle>
-            <DialogDescription className="text-xs font-mono">
-              {selectedDateStr}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="space-y-4 py-2">
-            <div className="space-y-2">
-              <Label htmlFor="cost-input">Cost (฿)</Label>
-              <Input
-                id="cost-input"
-                type="number"
-                value={costInput}
-                onChange={(e) => setCostInput(e.target.value)}
-                autoFocus
-                onKeyDown={(e) => e.key === 'Enter' && handleSaveCost()}
-              />
+          {/* Cost Entry Widget */}
+          {selectedDate && (
+            <div className="animate-in fade-in slide-in-from-top-2 p-4 rounded-xl bg-muted/20 border border-border/50">
+              <div className="flex justify-between items-center mb-3">
+                <label className="text-[10px] uppercase tracking-widest text-muted-foreground/50 font-bold">
+                  {isEditing ? 'Edit Cost' : 'Add Cost'} — {new Date(selectedDate).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                </label>
+                {isEditing && (
+                  <button 
+                    onClick={handleRemoveEntry}
+                    className="p-1 text-muted-foreground/40 hover:text-danger transition-colors"
+                    title="Remove Entry"
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </button>
+                )}
+              </div>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground/50">฿</span>
+                  <Input
+                    autoFocus
+                    type="number"
+                    value={costInput}
+                    onChange={(e) => setCostInput(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleSaveEntry()}
+                    className="pl-7 h-10 bg-background/50"
+                  />
+                </div>
+                <button
+                  onClick={handleSaveEntry}
+                  className="px-4 rounded-lg bg-gradient-to-br from-[#475569] via-[#334155] to-[#0F172A] text-white font-bold text-xs shadow-inner"
+                >
+                  {isEditing ? 'Update' : 'Add'}
+                </button>
+              </div>
             </div>
-          </div>
-
-          <DialogFooter className="flex-row sm:justify-between items-center gap-2">
-            <div>
-              {markedDates.has(selectedDateStr) && (
-                <Button variant="ghost" size="icon" className="text-danger hover:bg-danger/10" onClick={handleDeletePurchase}>
-                  <Trash2 className="h-4 w-4" />
-                </Button>
-              )}
-            </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => setCostDialogOpen(false)}>
-                Cancel
-              </Button>
-              <Button size="sm" onClick={handleSaveCost}>
-                OK
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }

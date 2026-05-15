@@ -11,6 +11,7 @@ export default function EarningsTab() {
   const [studentModalOpen, setStudentModalOpen] = useState(false)
   const [calendarModalOpen, setCalendarModalOpen] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState(null)
+  const [editingStudent, setEditingStudent] = useState(null)
 
   useEffect(() => {
     const loadStudents = async () => {
@@ -20,16 +21,29 @@ export default function EarningsTab() {
     loadStudents()
   }, [])
 
-  const handleAddStudent = async (formData) => {
-    const newStudent = {
-      name: formData.name,
-      price: parseFloat(formData.price),
-      attendanceDates: [],
+  const handleAddOrUpdateStudent = async (formData) => {
+    if (editingStudent) {
+      const updatedData = {
+        ...editingStudent,
+        name: formData.name,
+        price: parseFloat(formData.price),
+      }
+      const result = await api.updateStudent(editingStudent.id, updatedData)
+      if (result) {
+        setStudents(students.map(s => s.id === editingStudent.id ? result : s))
+      }
+    } else {
+      const newStudent = {
+        name: formData.name,
+        price: parseFloat(formData.price),
+        attendanceDates: [],
+      }
+      const result = await api.addStudent(newStudent)
+      if (result) {
+        setStudents([...students, result])
+      }
     }
-    const result = await api.addStudent(newStudent)
-    if (result) {
-      setStudents([...students, result])
-    }
+    setEditingStudent(null)
   }
 
   const handleDeleteStudent = async (id) => {
@@ -46,6 +60,11 @@ export default function EarningsTab() {
     setCalendarModalOpen(true)
   }
 
+  const handleOpenEdit = (student) => {
+    setEditingStudent(student)
+    setStudentModalOpen(true)
+  }
+
   const handleUpdateAttendance = async (attendanceDates) => {
     const result = await api.updateStudentAttendance(selectedStudent.id, attendanceDates)
     if (result) {
@@ -58,15 +77,16 @@ export default function EarningsTab() {
     }
   }
 
-  const totalIncome = students.reduce((sum, s) => sum + (s.price * (s.attendanceDates?.length || 0)), 0)
-
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-2xl font-semibold">ESL Students</h3>
         </div>
-        <Button size="icon" variant="default" onClick={() => setStudentModalOpen(true)}>
+        <Button size="icon" variant="default" onClick={() => {
+          setEditingStudent(null)
+          setStudentModalOpen(true)
+        }}>
           <Plus className="h-4 w-4" />
         </Button>
       </div>
@@ -83,6 +103,7 @@ export default function EarningsTab() {
               student={student}
               onCalendar={() => handleOpenCalendar(student)}
               onDelete={() => handleDeleteStudent(student.id)}
+              onEdit={() => handleOpenEdit(student)}
             />
           ))}
         </div>
@@ -90,8 +111,12 @@ export default function EarningsTab() {
 
       <StudentModal
         open={studentModalOpen}
-        onOpenChange={setStudentModalOpen}
-        onSubmit={handleAddStudent}
+        onOpenChange={(open) => {
+          setStudentModalOpen(open)
+          if (!open) setEditingStudent(null)
+        }}
+        onSubmit={handleAddOrUpdateStudent}
+        initialData={editingStudent}
       />
 
       {selectedStudent && (
@@ -100,6 +125,7 @@ export default function EarningsTab() {
           onOpenChange={setCalendarModalOpen}
           studentName={selectedStudent.name}
           attendanceDates={selectedStudent.attendanceDates}
+          avgLessonPrice={selectedStudent.price}
           onUpdateAttendance={handleUpdateAttendance}
         />
       )}
