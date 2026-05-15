@@ -56,12 +56,15 @@ export function getCalculatedSpendingMetrics(item) {
     }
   }
   
-  const daysSinceFirst = uniqueDates.length > 0 
+  const daysSinceFirst = uniqueDates.length > 1
     ? Math.max(1, Math.floor((now - uniqueDates[0]) / (1000 * 60 * 60 * 24)))
-    : 30;
+    : null;
     
-  const dailyCost = totalCost / daysSinceFirst;
-  const calcMonthlyCost = dailyCost * 30.44;
+  let calcMonthlyCost = totalCost;
+  if (daysSinceFirst) {
+    const dailyCost = totalCost / daysSinceFirst;
+    calcMonthlyCost = dailyCost * 30.44;
+  }
 
   return {
     hasData: uniqueDates.length >= 2,
