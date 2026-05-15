@@ -15,6 +15,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
   const [nameInput, setNameInput] = useState('')
   const [costInput, setCostInput] = useState('')
   const [editingId, setEditingId] = useState(null)
+  const [drafts, setDrafts] = useState({}) // { [date]: { name, cost } }
 
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
@@ -30,11 +31,32 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
 
   const handleDayClick = (day) => {
     const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day)
+    
+    // 1. If clicking the same date, do nothing (preserves current typing)
+    if (dateStr === selectedDate) return
+
+    // 2. Save current draft before switching (if not editing an existing entry)
+    if (selectedDate && !editingId) {
+      setDrafts(prev => ({
+        ...prev,
+        [selectedDate]: { name: nameInput, cost: costInput }
+      }))
+    }
+
+    // 3. Switch to new date
     setSelectedDate(dateStr)
     setEditingId(null)
-    setNameInput('')
-    const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
-    setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
+
+    // 4. Load draft for the new date if it exists
+    const draft = drafts[dateStr]
+    if (draft) {
+      setNameInput(draft.name)
+      setCostInput(draft.cost)
+    } else {
+      setNameInput('')
+      const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
+      setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
+    }
   }
 
   const handleSaveEntry = () => {
@@ -56,6 +78,12 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     
     onUpdateDates(updated)
     setEditingId(null)
+    
+    // Clear draft for this date after saving
+    const newDrafts = { ...drafts }
+    delete newDrafts[selectedDate]
+    setDrafts(newDrafts)
+
     setNameInput('')
     const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
     setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
