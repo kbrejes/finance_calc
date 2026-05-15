@@ -32,6 +32,35 @@ function readDB() {
   }
 }
 
+import { exec } from 'child_process'
+import { promisify } from 'util'
+
+const execAsync = promisify(exec)
+
+// ... existing code ...
+
+async function syncToGithub() {
+  try {
+    // 1. Add the ignored db.json specifically
+    await execAsync('git add -f db.json');
+    // 2. Create a temporary backup commit
+    const timestamp = new Date().toISOString();
+    await execAsync(`git commit -m "data: cloud backup ${timestamp}"`);
+    // 3. Push to a dedicated backup branch (force push to keep it simple)
+    await execAsync('git push origin master:data-backup -f');
+    // 4. Undo the commit locally so the server stays clean for next deploy
+    await execAsync('git reset HEAD~1');
+    // 5. Re-ignore the file locally
+    await execAsync('git rm --cached db.json');
+    console.log('Cloud Sync: Success');
+  } catch (error) {
+    // Error is expected if there are no changes to commit
+    if (!error.message.includes('nothing to commit')) {
+      console.error('Cloud Sync Failed:', error.message);
+    }
+  }
+}
+
 function writeDB(data) {
   try {
     // 1. Create a versioned backup before writing
@@ -55,6 +84,9 @@ function writeDB(data) {
     const tempFile = `${DB_FILE}.tmp`;
     fs.writeFileSync(tempFile, JSON.stringify(data, null, 2), 'utf-8');
     fs.renameSync(tempFile, DB_FILE);
+
+    // 4. Trigger Cloud Sync in the background
+    syncToGithub();
   } catch (error) {
     console.error('CRITICAL: Failed to write to DB:', error);
   }
