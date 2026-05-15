@@ -65,9 +65,6 @@ export default function EarningsTab() {
       <div className="flex items-center justify-between">
         <div>
           <h3 className="text-2xl font-semibold">ESL Students</h3>
-          <p className="text-sm text-muted-foreground mt-1">
-            Total estimated income: <span className="text-green-400 font-mono">฿{totalIncome.toLocaleString()}</span>
-          </p>
         </div>
         <Button size="icon" variant="default" onClick={() => setStudentModalOpen(true)}>
           <Plus className="h-4 w-4" />

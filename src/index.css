@@ -2,6 +2,22 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --background: 0 0% 2%;
+  --foreground: 0 0% 100%;
+  --primary: 231 93% 74%; /* #818CF8 */
+  --primary-foreground: 0 0% 100%;
+  --success: 161 84% 39%; /* #10B981 */
+  --danger: 349 89% 60%;  /* #F43F5E */
+  --warning: 38 92% 50%;  /* #F59E0B */
+  --muted: 0 0% 25%;
+  --muted-foreground: 0 0% 64%;
+  --border: 0 0% 10%;
+  --input: 0 0% 6%;
+  --card: 0 0% 4%;
+  --radius: 0.5rem;
+}
+
 body {
   @apply bg-background text-foreground antialiased;
 }

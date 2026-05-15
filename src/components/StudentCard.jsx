@@ -19,7 +19,7 @@ export default function StudentCard({ student, onCalendar, onDelete }) {
         <Button
           size="sm"
           variant="ghost"
-          className="h-8 w-8 p-0 text-red-500 hover:text-red-600"
+          className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
           onClick={(e) => {
             e.stopPropagation()
             onDelete(student.id)
@@ -33,11 +33,11 @@ export default function StudentCard({ student, onCalendar, onDelete }) {
       <div className="grid grid-cols-2 gap-3 text-sm">
         <div className="rounded bg-background px-3 py-2">
           <div className="text-muted-foreground text-xs">Lessons</div>
-          <div className="font-semibold text-cyan-400">{attendanceCount}</div>
+          <div className="font-semibold text-muted-foreground">{attendanceCount}</div>
         </div>
         <div className="rounded bg-background px-3 py-2">
           <div className="text-muted-foreground text-xs">Est. Income</div>
-          <div className="font-mono font-semibold text-green-400">฿{totalIncome.toLocaleString()}</div>
+          <div className="font-mono font-semibold text-muted-foreground">฿{totalIncome.toLocaleString()}</div>
         </div>
       </div>
     </div>

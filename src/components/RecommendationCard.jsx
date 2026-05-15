@@ -51,16 +51,16 @@ export default function RecommendationCard({ balance, students, spendingItems })
   const Icon = rec.icon
 
   const bgColors = {
-    success: 'bg-green-500/10 border-green-500/30',
-    warning: 'bg-amber-500/10 border-amber-500/30',
-    danger: 'bg-red-500/10 border-red-500/30',
+    success: 'bg-success/10 border-success/30',
+    warning: 'bg-warning/10 border-warning/30',
+    danger: 'bg-danger/10 border-danger/30',
     info: 'bg-blue-500/10 border-blue-500/30',
   }
 
   const iconColors = {
-    success: 'text-green-400',
-    warning: 'text-amber-400',
-    danger: 'text-red-400',
+    success: 'text-success',
+    warning: 'text-warning',
+    danger: 'text-danger',
     info: 'text-blue-400',
   }
 

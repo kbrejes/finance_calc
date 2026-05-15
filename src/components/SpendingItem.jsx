@@ -60,15 +60,13 @@ export default function SpendingItem({
           </span>
         </div>
         <div className="flex items-center gap-2 mt-1">
-          <span className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">
-            {item.category}
-          </span>
-          <span className={`text-[10px] px-1.5 py-0.5 rounded-full font-medium ${item.isEssential ? 'bg-green-500/10 text-green-400 border border-green-500/20' : 'bg-orange-500/10 text-orange-400 border border-orange-500/20'}`}>
-            {item.isEssential ? 'Essential' : 'Optional'}
-          </span>
-          {predictionText && (
-            <span className="text-[10px] text-muted-foreground ml-1">
-              • {predictionText}
+          {predictionText ? (
+            <span className="text-[10px] text-muted-foreground">
+              {predictionText}
+            </span>
+          ) : (
+            <span className="text-[10px] text-muted-foreground opacity-50 italic">
+              No prediction yet
             </span>
           )}
         </div>
@@ -88,7 +86,7 @@ export default function SpendingItem({
         <Button
           variant="ghost"
           size="icon"
-          className="h-8 w-8 text-red-400 hover:bg-red-500/10 hover:text-red-300"
+          className="h-8 w-8 text-muted-foreground hover:text-foreground"
           onClick={() => onDelete(item.id)}
           title="Delete Item"
         >

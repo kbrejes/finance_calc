@@ -132,7 +132,7 @@ export default function CalendarModal({ open, onOpenChange, studentName, attenda
                         : isFuture
                         ? 'text-muted-foreground/30 cursor-not-allowed'
                         : isMarked
-                        ? 'bg-cyan-600 text-white hover:bg-cyan-700'
+                        ? 'bg-primary text-primary-foreground hover:bg-primary/90'
                         : 'border border-border text-foreground hover:bg-input'
                     }`}
                   >
@@ -149,7 +149,7 @@ export default function CalendarModal({ open, onOpenChange, studentName, attenda
               <span className="text-muted-foreground">Lessons this month:</span>
               <span className="font-semibold">{attendanceCount}</span>
             </div>
-            <div className="flex justify-between text-cyan-400">
+            <div className="flex justify-between text-primary">
               <span className="text-muted-foreground">Est. income:</span>
               <span className="font-mono">฿{(attendanceCount * avgLessonPrice).toLocaleString()}</span>
             </div>

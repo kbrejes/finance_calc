@@ -44,9 +44,6 @@ export default function StudentModal({ open, onOpenChange, onSubmit }) {
       <DialogContent className="sm:max-w-[400px]">
         <DialogHeader>
           <DialogTitle>Add Student</DialogTitle>
-          <DialogDescription>
-            Add a new ESL student to track earnings
-          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">

@@ -1,9 +1,9 @@
 export default function SummaryCard({ label, value, subtext, variant = 'default' }) {
   const variants = {
     default: 'text-foreground',
-    success: 'text-green-400',
-    danger: 'text-red-400',
-    info: 'text-cyan-400',
+    success: 'text-success',
+    danger: 'text-danger',
+    info: 'text-primary',
   }
 
   return (

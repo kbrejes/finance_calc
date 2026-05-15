@@ -173,6 +173,8 @@ export default function SpendingTab() {
           open={calendarOpen}
           onOpenChange={setCalendarOpen}
           itemName={selectedSpendingItem.className}
+          category={selectedSpendingItem.category}
+          isEssential={selectedSpendingItem.isEssential}
           purchaseDates={selectedSpendingItem.purchaseDates}
           pricePerUnit={selectedSpendingItem.pricePerUnit}
           units={selectedSpendingItem.units}
