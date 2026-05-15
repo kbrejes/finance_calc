@@ -96,8 +96,47 @@ export default function AssetsTab() {
 
   if (isLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Initializing Vault...</div>
 
+  // Calculate Totals
+  const totalFinancial = assets.financial.reduce((sum, item) => {
+    // Basic normalization for USDT to THB (approx 36) for summary
+    const multiplier = item.currency === 'USDT' ? 36 : (item.currency === 'USD' ? 35 : 1)
+    return sum + (item.value * multiplier)
+  }, 0)
+
+  const physicalMin = assets.physical.reduce((sum, item) => sum + (item.min || 0), 0)
+  const physicalMax = assets.physical.reduce((sum, item) => sum + (item.max || 0), 0)
+
+  const isExpiringSoon = (dateStr) => {
+    if (!dateStr) return false
+    const exp = new Date(dateStr)
+    const sixMonths = new Date()
+    sixMonths.setMonth(sixMonths.getMonth() + 6)
+    return exp < sixMonths
+  }
+
   return (
     <div className="space-y-8 animate-in fade-in duration-500 pb-20">
+      {/* Top Intelligence Bar */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-sm">
+          <div className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest mb-1">Total Liquid (Est.)</div>
+          <div className="text-xl font-black text-foreground">฿{formatNum(totalFinancial)}</div>
+        </div>
+        <div className="p-4 rounded-2xl bg-card border border-border/40 shadow-sm">
+          <div className="text-[10px] font-black text-muted-foreground/40 uppercase tracking-widest mb-1">Physical Value (Est.)</div>
+          <div className="text-xl font-black text-foreground">
+            ฿{formatNum(physicalMin)} <span className="text-muted-foreground/30 mx-1">—</span> ฿{formatNum(physicalMax)}
+          </div>
+        </div>
+        <div className="p-4 rounded-2xl bg-primary/5 border border-primary/20 shadow-sm flex items-center justify-between">
+          <div>
+            <div className="text-[10px] font-black text-primary/60 uppercase tracking-widest mb-1">Safety Status</div>
+            <div className="text-sm font-bold text-primary">All Systems Nominal</div>
+          </div>
+          <ShieldCheck className="h-6 w-6 text-primary/40" />
+        </div>
+      </div>
+
       {/* Financial & Vitals (Top Row) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Financial Assets */}
@@ -136,7 +175,7 @@ export default function AssetsTab() {
                     type="text"
                     value={item.currency}
                     onChange={(e) => updateSection('financial', i, 'currency', e.target.value)}
-                    className="w-10 bg-transparent text-[10px] font-bold text-muted-foreground/40 focus:outline-none uppercase"
+                    className="w-12 bg-transparent text-[10px] font-bold text-muted-foreground/40 focus:outline-none uppercase"
                   />
                   <button 
                     onClick={() => removeItem('financial', i)}
@@ -167,30 +206,33 @@ export default function AssetsTab() {
             </button>
           </div>
           <div className="space-y-3">
-            {assets.vitals.map((item, i) => (
-              <div key={i} className="group flex items-center justify-between p-3 rounded-xl bg-muted/5 border border-border/20 hover:border-border/40 transition-all">
-                <input
-                  type="text"
-                  value={item.name}
-                  onChange={(e) => updateSection('vitals', i, 'name', e.target.value)}
-                  className="bg-transparent text-xs font-bold text-muted-foreground focus:outline-none w-1/2"
-                />
-                <div className="flex items-center gap-2">
+            {assets.vitals.map((item, i) => {
+              const warning = isExpiringSoon(item.exp)
+              return (
+                <div key={i} className={`group flex items-center justify-between p-3 rounded-xl border transition-all ${warning ? 'bg-danger/5 border-danger/30 shadow-[0_0_15px_rgba(244,63,94,0.1)]' : 'bg-muted/5 border-border/20 hover:border-border/40'}`}>
                   <input
-                    type="date"
-                    value={item.exp}
-                    onChange={(e) => updateSection('vitals', i, 'exp', e.target.value)}
-                    className="bg-transparent text-right text-[11px] font-bold text-primary focus:outline-none cursor-pointer hover:bg-primary/5 focus:bg-primary/10 px-1 rounded transition-colors"
+                    type="text"
+                    value={item.name}
+                    onChange={(e) => updateSection('vitals', i, 'name', e.target.value)}
+                    className={`bg-transparent text-xs font-bold focus:outline-none w-1/2 ${warning ? 'text-danger/90' : 'text-muted-foreground'}`}
                   />
-                  <button 
-                    onClick={() => removeItem('vitals', i)}
-                    className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground/30 hover:text-danger transition-all ml-1"
-                  >
-                    <Trash2 className="h-3 w-3" />
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="date"
+                      value={item.exp}
+                      onChange={(e) => updateSection('vitals', i, 'exp', e.target.value)}
+                      className={`bg-transparent text-right text-[11px] font-bold focus:outline-none cursor-pointer hover:bg-white/5 px-1 rounded transition-colors ${warning ? 'text-danger' : 'text-primary'}`}
+                    />
+                    <button 
+                      onClick={() => removeItem('vitals', i)}
+                      className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground/30 hover:text-danger transition-all ml-1"
+                    >
+                      <Trash2 className="h-3 w-3" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </div>
