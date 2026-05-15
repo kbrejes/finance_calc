@@ -5,12 +5,17 @@ import EarningsTab from './tabs/EarningsTab'
 import DashboardTab from './tabs/DashboardTab'
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('spending')
+  const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'spending')
+
+  const handleTabChange = (val) => {
+    setActiveTab(val)
+    localStorage.setItem('activeTab', val)
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto max-w-7xl px-4 py-6">
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={handleTabChange}>
           <TabsList className="grid w-full max-w-md grid-cols-3 mb-8">
             <TabsTrigger value="spending">Spending</TabsTrigger>
             <TabsTrigger value="earnings">Earnings</TabsTrigger>
