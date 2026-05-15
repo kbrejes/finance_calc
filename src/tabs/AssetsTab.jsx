@@ -25,9 +25,9 @@ export default function AssetsTab() {
       { name: 'Stocks', value: 0, currency: 'USD' }
     ],
     vitals: [
-      { name: 'Passport', exp: '2030-01-01' },
-      { name: 'Driver License', exp: '2028-05-15' },
-      { name: 'DTV Visa', exp: '2025-11-10' }
+      { name: 'Passport', exp: '2030-01-01', borderRun: '', cost: 0 },
+      { name: 'Driver License', exp: '2028-05-15', borderRun: '', cost: 0 },
+      { name: 'DTV Visa', exp: '2025-11-10', borderRun: '2025-05-10', cost: 10000 }
     ],
     digital: [
       { name: 'YouTube', sub: 0, posts: 0 },
@@ -74,7 +74,7 @@ export default function AssetsTab() {
     const defaults = {
       physical: { name: 'New Physical Asset', min: 0, max: 0 },
       financial: { name: 'New Account', value: 0, currency: 'THB' },
-      vitals: { name: 'New Document', exp: new Date().toISOString().split('T')[0] },
+      vitals: { name: 'New Document', exp: new Date().toISOString().split('T')[0], borderRun: '', cost: 0 },
       digital: { name: 'New Channel', sub: 0, posts: 0 }
     }
     const newData = {
@@ -125,7 +125,7 @@ export default function AssetsTab() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
-      {/* Financial & Vitals (Top Row) */}
+      {/* Financial & Documents (Top Row) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Financial Assets */}
         <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
@@ -180,7 +180,7 @@ export default function AssetsTab() {
           </div>
         </div>
 
-        {/* Vital Documents */}
+        {/* Documents */}
         <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
@@ -188,13 +188,8 @@ export default function AssetsTab() {
                 <ShieldCheck className="h-5 w-5 text-primary" />
               </div>
               <div>
-                <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Vital Documents</h3>
-                <div className="flex items-center gap-1.5 mt-0.5">
-                  <div className={`h-1.5 w-1.5 rounded-full animate-pulse ${assets.vitals?.some(v => isExpiringSoon(v.exp)) ? 'bg-danger' : 'bg-primary'}`} />
-                  <span className="text-[10px] font-bold text-muted-foreground/50 uppercase tracking-tighter">
-                    {assets.vitals?.some(v => isExpiringSoon(v.exp)) ? 'Renewal Required' : 'Status: Secure'}
-                  </span>
-                </div>
+                <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Documents</h3>
+                <div className="text-[10px] font-bold text-muted-foreground/50 mt-0.5">Inventory: {assets.vitals?.length || 0} items</div>
               </div>
             </div>
             <button 
@@ -204,23 +199,16 @@ export default function AssetsTab() {
               <Plus className="h-4 w-4" />
             </button>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             {(assets.vitals || []).map((item, i) => {
-              const warning = isExpiringSoon(item.exp)
               return (
-                <div key={i} className={`group flex items-center justify-between p-3 rounded-xl border transition-all ${warning ? 'bg-danger/5 border-danger/30 shadow-[0_0_15px_rgba(244,63,94,0.1)]' : 'bg-muted/5 border-border/20 hover:border-border/40'}`}>
-                  <input
-                    type="text"
-                    value={item.name}
-                    onChange={(e) => updateSection('vitals', i, 'name', e.target.value)}
-                    className={`bg-transparent text-xs font-bold focus:outline-none w-1/2 ${warning ? 'text-danger/90' : 'text-muted-foreground'}`}
-                  />
-                  <div className="flex items-center gap-2">
+                <div key={i} className="group p-4 rounded-xl border bg-muted/5 border-border/20 hover:border-border/40 transition-all space-y-3">
+                  <div className="flex items-center justify-between">
                     <input
-                      type="date"
-                      value={item.exp}
-                      onChange={(e) => updateSection('vitals', i, 'exp', e.target.value)}
-                      className={`bg-transparent text-right text-[11px] font-bold focus:outline-none cursor-pointer hover:bg-white/5 px-1 rounded transition-colors ${warning ? 'text-danger' : 'text-primary'}`}
+                      type="text"
+                      value={item.name}
+                      onChange={(e) => updateSection('vitals', i, 'name', e.target.value)}
+                      className="bg-transparent text-xs font-black uppercase text-foreground/80 focus:outline-none w-1/2"
                     />
                     <button 
                       onClick={() => removeItem('vitals', i)}
@@ -228,6 +216,40 @@ export default function AssetsTab() {
                     >
                       <Trash2 className="h-3 w-3" />
                     </button>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="space-y-1">
+                      <div className="text-[8px] uppercase tracking-widest text-muted-foreground/40 font-bold">Expiration</div>
+                      <input
+                        type="date"
+                        value={item.exp}
+                        onChange={(e) => updateSection('vitals', i, 'exp', e.target.value)}
+                        className="bg-transparent text-[11px] font-bold text-primary focus:outline-none cursor-pointer hover:bg-white/5 px-1 rounded transition-colors w-full"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <div className="text-[8px] uppercase tracking-widest text-muted-foreground/40 font-bold">Border Run</div>
+                      <input
+                        type="date"
+                        value={item.borderRun || ''}
+                        onChange={(e) => updateSection('vitals', i, 'borderRun', e.target.value)}
+                        className="bg-transparent text-[11px] font-bold text-muted-foreground/70 focus:outline-none cursor-pointer hover:bg-white/5 px-1 rounded transition-colors w-full"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex items-center justify-between pt-1 border-t border-border/10">
+                    <div className="text-[8px] uppercase tracking-widest text-muted-foreground/40 font-bold">Cost</div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-[10px] font-bold text-muted-foreground/30">฿</span>
+                      <input
+                        type="number"
+                        value={item.cost || 0}
+                        onChange={(e) => updateSection('vitals', i, 'cost', parseInt(e.target.value) || 0)}
+                        className="bg-transparent text-right text-[11px] font-black text-foreground/70 focus:outline-none w-16"
+                      />
+                    </div>
                   </div>
                 </div>
               )
