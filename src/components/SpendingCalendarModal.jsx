@@ -153,6 +153,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                 const checkDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
                 checkDate.setHours(0, 0, 0, 0)
                 const isFuture = day && checkDate > today
+                const isToday = day && checkDate.getTime() === today.getTime()
                 
                 return (
                   <button
@@ -168,8 +169,10 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                         ? 'bg-gradient-to-br from-[#475569] via-[#334155] to-[#0F172A] text-white shadow-sm border border-slate-600/50'
                         : isCurrentlySelected
                         ? 'border-2 border-primary bg-primary/10 text-foreground'
+                        : isToday
+                        ? 'border-2 border-primary shadow-[0_0_10px_rgba(var(--primary),0.2)] bg-muted/50 text-foreground'
                         : 'border border-border/40 text-muted-foreground/60 hover:bg-muted/30 hover:text-foreground'
-                    }`}
+                    } ${isToday && !isMarked && !isCurrentlySelected ? 'animate-pulse' : ''}`}
                   >
                     <span className={isMarked ? 'text-[10px] font-bold leading-none' : 'text-xs font-bold'}>{day}</span>
                     {isMarked && (
