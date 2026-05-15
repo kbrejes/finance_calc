@@ -8,7 +8,7 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
 
 const app = express()
-const PORT = 3000
+const PORT = 3005
 const DB_FILE = path.join(__dirname, 'db.json')
 
 app.use(express.json());
