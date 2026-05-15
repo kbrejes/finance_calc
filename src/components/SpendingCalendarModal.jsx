@@ -63,7 +63,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     if (!selectedDate || !costInput) return
     
     const newEntry = { 
-      id: editingId || Date.now(),
+      id: editingId && !editingId.toString().startsWith('legacy-') ? editingId : Date.now(),
       date: selectedDate, 
       name: nameInput.trim() || item.className,
       cost: parseFloat(costInput) 
@@ -71,7 +71,10 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     
     let updated
     if (editingId) {
-      updated = item.purchaseDates.map(p => p.id === editingId ? newEntry : p)
+      updated = item.purchaseDates.map((p, idx) => {
+        const pId = typeof p === 'string' ? `legacy-${idx}` : (p.id || idx)
+        return pId === editingId ? newEntry : p
+      })
     } else {
       updated = [...(item.purchaseDates || []), newEntry]
     }
@@ -92,11 +95,14 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
   const handleEditEntry = (entry) => {
     setEditingId(entry.id)
     setNameInput(entry.name || '')
-    setCostInput(entry.cost.toString())
+    setCostInput((entry.cost || 0).toString())
   }
 
   const handleRemoveEntry = (id) => {
-    const updated = item.purchaseDates.filter(p => p.id !== id)
+    const updated = item.purchaseDates.filter((p, idx) => {
+      const pId = typeof p === 'string' ? `legacy-${idx}` : (p.id || idx)
+      return pId !== id
+    })
     onUpdateDates(updated)
     if (editingId === id) {
       setEditingId(null)
