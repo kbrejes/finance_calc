@@ -12,7 +12,7 @@ const PORT = 3005
 const DB_FILE = path.join(__dirname, 'db.json')
 
 app.use(express.json());
-app.use(express.static(__dirname));
+app.use(express.static(path.join(__dirname, 'dist')));
 
 // ---------- Helpers ----------
 
