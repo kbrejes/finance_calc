@@ -12,6 +12,7 @@ import { getCalculatedStudentMetrics, formatNum } from '../lib/financeUtils'
 export default function StudentStatsModal({ open, onOpenChange, student, onUpdateAdjustments }) {
   const [adjAmount, setAdjAmount] = useState('')
   const [adjComment, setAdjComment] = useState('')
+  const [isAdjusting, setIsAdjusting] = useState(false)
 
   if (!student) return null
   const metrics = getCalculatedStudentMetrics(student)
@@ -32,6 +33,7 @@ export default function StudentStatsModal({ open, onOpenChange, student, onUpdat
     onUpdateAdjustments(updated)
     setAdjAmount('')
     setAdjComment('')
+    setIsAdjusting(false)
   }
 
   const removeAdjustment = (id) => {
@@ -72,73 +74,92 @@ export default function StudentStatsModal({ open, onOpenChange, student, onUpdat
         </div>
 
         <div className="flex-1 overflow-y-auto p-8 pt-4 space-y-6 custom-scrollbar">
-          {/* Adjustment Form */}
-          <div className="space-y-3">
-            <div className="text-[10px] font-black text-foreground/40 uppercase tracking-widest flex items-center gap-2">
-              <Plus className="h-3 w-3" />
-              Adjust Balance
-            </div>
-            <form onSubmit={handleAddAdjustment} className="space-y-2">
-              <div className="flex gap-2">
-                <input 
-                  type="number" 
-                  step="0.01"
-                  placeholder="Amount (e.g. -500)"
-                  value={adjAmount}
-                  onChange={(e) => setAdjAmount(e.target.value)}
-                  className="flex-1 bg-muted/10 border border-border/20 rounded-xl px-3 py-2 text-xs font-bold text-foreground focus:outline-none focus:border-primary/40 transition-colors"
-                />
-                <button 
-                  type="submit"
-                  disabled={!adjAmount}
-                  className="px-4 py-2 bg-muted/20 hover:bg-muted/40 rounded-xl text-[10px] font-black uppercase transition-all disabled:opacity-30"
-                >
-                  Apply
-                </button>
+          {/* Adjustment Section */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div className="text-[10px] font-black text-foreground/40 uppercase tracking-widest flex items-center gap-2">
+                <History className="h-3 w-3" />
+                Corrections
               </div>
-              <input 
-                type="text" 
-                placeholder="Reason for adjustment..."
-                value={adjComment}
-                onChange={(e) => setAdjComment(e.target.value)}
-                className="w-full bg-muted/10 border border-border/20 rounded-xl px-3 py-2 text-[10px] font-bold text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
-              />
-            </form>
-          </div>
-
-          {/* Adjustment History */}
-          <div className="space-y-3">
-            <div className="text-[10px] font-black text-foreground/40 uppercase tracking-widest flex items-center gap-2">
-              <History className="h-3 w-3" />
-              Correction History
-            </div>
-            <div className="space-y-2">
-              {!(student.adjustments || []).length ? (
-                <div className="text-[10px] text-muted-foreground/30 font-bold italic py-4 text-center border border-dashed border-border/20 rounded-xl">
-                  No adjustments recorded
-                </div>
-              ) : (
-                [...(student.adjustments || [])].reverse().map((adj) => (
-                  <div key={adj.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/5 border border-border/10 group">
-                    <div className="flex flex-col gap-0.5">
-                      <div className="flex items-center gap-2">
-                        <span className={`text-[10px] font-black ${adj.amount >= 0 ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
-                          {adj.amount >= 0 ? '+' : ''}฿{formatNum(adj.amount)}
-                        </span>
-                        <span className="text-[8px] font-bold text-muted-foreground/20">{adj.date}</span>
-                      </div>
-                      <div className="text-[9px] font-bold text-muted-foreground/40">{adj.comment}</div>
-                    </div>
-                    <button 
-                      onClick={() => removeAdjustment(adj.id)}
-                      className="p-1.5 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground/20 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </button>
-                  </div>
-                ))
+              {!isAdjusting && (
+                <button 
+                  onClick={() => setIsAdjusting(true)}
+                  className="text-[9px] font-black uppercase text-primary/60 hover:text-primary transition-colors flex items-center gap-1"
+                >
+                  <Plus className="h-2.5 w-2.5" />
+                  New Adjustment
+                </button>
               )}
             </div>
+
+            {isAdjusting ? (
+              <form onSubmit={handleAddAdjustment} className="space-y-3 animate-in slide-in-from-top-2 duration-300">
+                <div className="flex gap-2">
+                  <input 
+                    type="number" 
+                    step="0.01"
+                    placeholder="Amount"
+                    value={adjAmount}
+                    onChange={(e) => setAdjAmount(e.target.value)}
+                    className="flex-1 bg-muted/10 border border-border/20 rounded-xl px-3 py-2 text-xs font-bold text-foreground focus:outline-none focus:border-primary/40 transition-colors"
+                    autoFocus
+                  />
+                  <button 
+                    type="submit"
+                    disabled={!adjAmount}
+                    className="px-4 py-2 bg-primary/10 hover:bg-primary/20 text-primary rounded-xl text-[10px] font-black uppercase transition-all disabled:opacity-30"
+                  >
+                    Apply
+                  </button>
+                  <button 
+                    type="button"
+                    onClick={() => {
+                      setIsAdjusting(false)
+                      setAdjAmount('')
+                      setAdjComment('')
+                    }}
+                    className="px-4 py-2 bg-muted/20 hover:bg-muted/40 rounded-xl text-[10px] font-black uppercase transition-all"
+                  >
+                    Cancel
+                  </button>
+                </div>
+                <input 
+                  type="text" 
+                  placeholder="Reason for adjustment..."
+                  value={adjComment}
+                  onChange={(e) => setAdjComment(e.target.value)}
+                  className="w-full bg-muted/10 border border-border/20 rounded-xl px-3 py-2 text-[10px] font-bold text-muted-foreground focus:outline-none focus:border-primary/40 transition-colors"
+                />
+              </form>
+            ) : (
+              <div className="space-y-2">
+                {!(student.adjustments || []).length ? (
+                  <div className="text-[10px] text-muted-foreground/30 font-bold italic py-6 text-center border border-dashed border-border/20 rounded-xl">
+                    No adjustments recorded
+                  </div>
+                ) : (
+                  [...(student.adjustments || [])].reverse().map((adj) => (
+                    <div key={adj.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/5 border border-border/10 group">
+                      <div className="flex flex-col gap-0.5">
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] font-black ${adj.amount >= 0 ? 'text-muted-foreground' : 'text-muted-foreground/60'}`}>
+                            {adj.amount >= 0 ? '+' : ''}฿{formatNum(adj.amount)}
+                          </span>
+                          <span className="text-[8px] font-bold text-muted-foreground/20">{adj.date}</span>
+                        </div>
+                        <div className="text-[9px] font-bold text-muted-foreground/40">{adj.comment}</div>
+                      </div>
+                      <button 
+                        onClick={() => removeAdjustment(adj.id)}
+                        className="p-1.5 hover:bg-rose-500/10 hover:text-rose-500 text-muted-foreground/20 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
+                      >
+                        <Trash2 className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
           </div>
         </div>
       </DialogContent>
