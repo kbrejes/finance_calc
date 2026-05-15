@@ -48,22 +48,28 @@ export function getCalculatedSpendingMetrics(item) {
 
   // 2. Calculate Total Cost and Monthly Projections
   let totalCost = 0;
+  let entryCount = 0;
   for (const p of item.purchaseDates) {
     if (typeof p === 'object' && p.cost !== undefined) {
       totalCost += p.cost;
+      entryCount++;
     } else if (typeof p === 'string') {
-      totalCost += (item.pricePerUnit || 0) * (item.units || 1);
+      const legacyCost = (item.pricePerUnit || 0) * (item.units || 1);
+      totalCost += legacyCost;
+      entryCount++;
     }
   }
   
-  const daysSinceFirst = uniqueDates.length > 1
-    ? Math.max(1, Math.floor((now - uniqueDates[0]) / (1000 * 60 * 60 * 24)))
-    : null;
-    
   let calcMonthlyCost = totalCost;
-  if (daysSinceFirst) {
-    const dailyCost = totalCost / daysSinceFirst;
-    calcMonthlyCost = dailyCost * 30.44;
+  
+  if (uniqueDates.length >= 2 && avgDays > 0) {
+    const avgCostPerEntry = totalCost / entryCount;
+    // Projection: (Average Cost per Purchase) * (Expected Purchases per Month)
+    const expectedEntriesPerMonth = 30.44 / avgDays;
+    calcMonthlyCost = avgCostPerEntry * expectedEntriesPerMonth;
+  } else {
+    // For single entries or very little data, just show the total for now
+    calcMonthlyCost = totalCost;
   }
 
   return {
