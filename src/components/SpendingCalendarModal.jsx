@@ -7,15 +7,23 @@ import {
   DialogTitle,
 } from './ui/dialog'
 import { Input } from './ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select'
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 
-export default function SpendingCalendarModal({ open, onOpenChange, item, onUpdateDates }) {
+export default function SpendingCalendarModal({ open, onOpenChange, item, onUpdateDates, accounts }) {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [selectedDate, setSelectedDate] = useState(null)
   const [nameInput, setNameInput] = useState('')
   const [costInput, setCostInput] = useState('')
+  const [accountInput, setAccountInput] = useState('none')
   const [editingId, setEditingId] = useState(null)
-  const [drafts, setDrafts] = useState({}) // { [date]: { name, cost } }
+  const [drafts, setDrafts] = useState({}) // { [date]: { name, cost, account } }
 
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
@@ -39,7 +47,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     if (selectedDate && !editingId) {
       setDrafts(prev => ({
         ...prev,
-        [selectedDate]: { name: nameInput, cost: costInput }
+        [selectedDate]: { name: nameInput, cost: costInput, account: accountInput }
       }))
     }
 
@@ -52,10 +60,12 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     if (draft) {
       setNameInput(draft.name)
       setCostInput(draft.cost)
+      setAccountInput(draft.account || item.account || 'none')
     } else {
       setNameInput('')
       const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
       setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
+      setAccountInput(item.account || 'none')
     }
   }
 
@@ -66,7 +76,8 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
       id: editingId && !editingId.toString().startsWith('legacy-') ? editingId : Date.now(),
       date: selectedDate, 
       name: nameInput.trim() || item.className,
-      cost: parseFloat(costInput) 
+      cost: parseFloat(costInput),
+      account: accountInput
     }
     
     let updated
@@ -96,6 +107,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     setEditingId(entry.id)
     setNameInput(entry.name || '')
     setCostInput((entry.cost || 0).toString())
+    setAccountInput(entry.account || item.account || 'none')
   }
 
   const handleRemoveEntry = (id) => {
@@ -249,7 +261,10 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                     <div key={entry.id || `entry-${globalIdx}`} className="group flex items-center justify-between p-2.5 rounded-lg bg-muted/20 border border-border/30 hover:border-border/60 transition-colors">
                       <div className="flex flex-col">
                         <span className="text-[11px] font-bold text-foreground/80">{entry.name || item.className}</span>
-                        <span className="text-[10px] font-medium text-muted-foreground/70">฿{(entry.cost || 0).toLocaleString()}</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-medium text-white/50">฿{(entry.cost || 0).toLocaleString()}</span>
+                          <span className="text-[8px] font-black text-primary/60 uppercase">{entry.account || item.account || 'none'}</span>
+                        </div>
                       </div>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
@@ -294,6 +309,23 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                         className="pl-6 h-8 text-xs bg-background/50 border-border/30"
                       />
                     </div>
+
+                    <div className="w-[120px]">
+                      <Select value={accountInput} onValueChange={setAccountInput}>
+                        <SelectTrigger className="h-8 text-[10px] bg-background/50 border-border/30">
+                          <SelectValue placeholder="Account" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {(accounts || []).map(acc => (
+                            <SelectItem key={acc.name} value={acc.name} className="text-[10px]">
+                              {acc.name}
+                            </SelectItem>
+                          ))}
+                          <SelectItem value="none" className="text-[10px]">Manual</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
                     <button
                       onClick={handleSaveEntry}
                       className="px-3 h-8 rounded-lg bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-wider shadow-sm transition-transform active:scale-95"

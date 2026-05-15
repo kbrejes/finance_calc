@@ -96,16 +96,45 @@ export default function SpendingTab() {
     const accountName = selectedSpendingItem.account || 'none'
     
     if (accountName !== 'none') {
-      const oldTotal = oldDates.reduce((sum, d) => sum + (typeof d === 'string' ? 0 : (d.cost || 0)), 0)
-      const newTotal = dates.reduce((sum, d) => sum + (typeof d === 'string' ? 0 : (d.cost || 0)), 0)
-      const diff = newTotal - oldTotal
+      const oldTotalByAcc = {}
+      const newTotalByAcc = {}
       
-      if (diff !== 0) {
-        const assetData = await api.fetchAssets()
-        if (assetData && assetData.financial) {
-          const updatedFinancial = assetData.financial.map(acc => 
-            acc.name === accountName ? { ...acc, value: (acc.value || 0) - diff } : acc
-          )
+      // Track totals per account
+      oldDates.forEach(d => {
+        const acc = (typeof d === 'string' ? accountName : (d.account || accountName))
+        if (acc !== 'none') {
+          const cost = typeof d === 'string' ? 0 : (d.cost || 0)
+          oldTotalByAcc[acc] = (oldTotalByAcc[acc] || 0) + cost
+        }
+      })
+      
+      dates.forEach(d => {
+        const acc = (typeof d === 'string' ? accountName : (d.account || accountName))
+        if (acc !== 'none') {
+          const cost = typeof d === 'string' ? 0 : (d.cost || 0)
+          newTotalByAcc[acc] = (newTotalByAcc[acc] || 0) + cost
+        }
+      })
+
+      // Combine all affected accounts
+      const allAccs = new Set([...Object.keys(oldTotalByAcc), ...Object.keys(newTotalByAcc)])
+      let anyChange = false
+      
+      const assetData = await api.fetchAssets()
+      if (assetData && assetData.financial) {
+        let updatedFinancial = [...assetData.financial]
+        
+        allAccs.forEach(acc => {
+          const diff = (newTotalByAcc[acc] || 0) - (oldTotalByAcc[acc] || 0)
+          if (diff !== 0) {
+            anyChange = true
+            updatedFinancial = updatedFinancial.map(f => 
+              f.name === acc ? { ...f, value: (f.value || 0) - diff } : f
+            )
+          }
+        })
+        
+        if (anyChange) {
           await api.saveAssets({ ...assetData, financial: updatedFinancial })
           setAccounts(updatedFinancial)
         }
@@ -226,6 +255,7 @@ export default function SpendingTab() {
           onOpenChange={setCalendarOpen}
           item={selectedSpendingItem}
           onUpdateDates={handleUpdatePurchaseDates}
+          accounts={accounts}
         />
       )}
     </div>
