@@ -2,13 +2,13 @@ import { useState, useEffect } from 'react'
 import { Plus, Trash2, ShieldCheck, Wallet, Globe, Instagram, Youtube, Send, Mail, FileText } from 'lucide-react'
 import * as api from '../lib/api'
 import { formatNum } from '../lib/financeUtils'
-import { Input } from '../components/ui/input'
 
-const CATEGORY_ICONS = {
-  vitals: ShieldCheck,
-  financial: Wallet,
-  digital: Globe,
-  physical: FileText
+const DIGITAL_ICONS = {
+  YouTube: Youtube,
+  Telegram: Send,
+  Instagram: Instagram,
+  'Email List': Mail,
+  'EWK Website': Globe
 }
 
 export default function AssetsTab() {
@@ -30,11 +30,11 @@ export default function AssetsTab() {
       { name: 'DTV Visa', exp: '2025-11-10' }
     ],
     digital: [
-      { name: 'YouTube', sub: 0, posts: 0, icon: Youtube },
-      { name: 'Telegram', sub: 0, posts: 0, icon: Send },
-      { name: 'Instagram', sub: 0, posts: 0, icon: Instagram },
-      { name: 'Email List', sub: 0, posts: 0, icon: Mail },
-      { name: 'EWK Website', sub: 0, posts: 0, icon: Globe }
+      { name: 'YouTube', sub: 0, posts: 0 },
+      { name: 'Telegram', sub: 0, posts: 0 },
+      { name: 'Instagram', sub: 0, posts: 0 },
+      { name: 'Email List', sub: 0, posts: 0 },
+      { name: 'EWK Website', sub: 0, posts: 0 }
     ]
   })
 
@@ -44,14 +44,12 @@ export default function AssetsTab() {
     const load = async () => {
       try {
         const data = await api.fetchAssets()
-        // Safely merge with defaults to prevent crashes if server keys are missing
-        if (data && (data.physical?.length > 0 || data.financial?.length > 0)) {
+        if (data) {
           setAssets(prev => ({
             ...prev,
             ...data
           }))
         } else {
-          // If server is empty, sync our defaults TO the server once
           api.saveAssets(assets)
         }
       } catch (e) {
@@ -77,11 +75,11 @@ export default function AssetsTab() {
       physical: { name: 'New Physical Asset', min: 0, max: 0 },
       financial: { name: 'New Account', value: 0, currency: 'THB' },
       vitals: { name: 'New Document', exp: new Date().toISOString().split('T')[0] },
-      digital: { name: 'New Channel', sub: 0, posts: 0, icon: Globe }
+      digital: { name: 'New Channel', sub: 0, posts: 0 }
     }
     const newData = {
       ...assets,
-      [section]: [...assets[section], defaults[section]]
+      [section]: [...(assets[section] || []), defaults[section]]
     }
     handleSave(newData)
   }
@@ -89,22 +87,33 @@ export default function AssetsTab() {
   const removeItem = (section, index) => {
     const newData = {
       ...assets,
-      [section]: assets[section].filter((_, i) => i !== index)
+      [section]: (assets[section] || []).filter((_, i) => i !== index)
+    }
+    handleSave(newData)
+  }
+
+  const updateSection = (section, index, field, value) => {
+    const newData = { 
+      ...assets,
+      [section]: (assets[section] || []).map((item, i) => 
+        i === index ? { ...item, [field]: value } : item
+      )
     }
     handleSave(newData)
   }
 
   if (isLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Initializing Vault...</div>
 
-  // Calculate Totals
-  const totalFinancial = assets.financial.reduce((sum, item) => {
-    // Basic normalization for USDT to THB (approx 36) for summary
+  // Calculate Totals safely
+  const financialList = assets.financial || []
+  const totalFinancial = financialList.reduce((sum, item) => {
     const multiplier = item.currency === 'USDT' ? 36 : (item.currency === 'USD' ? 35 : 1)
-    return sum + (item.value * multiplier)
+    return sum + ((item.value || 0) * multiplier)
   }, 0)
 
-  const physicalMin = assets.physical.reduce((sum, item) => sum + (item.min || 0), 0)
-  const physicalMax = assets.physical.reduce((sum, item) => sum + (item.max || 0), 0)
+  const physicalList = assets.physical || []
+  const physicalMin = physicalList.reduce((sum, item) => sum + (item.min || 0), 0)
+  const physicalMax = physicalList.reduce((sum, item) => sum + (item.max || 0), 0)
 
   const isExpiringSoon = (dateStr) => {
     if (!dateStr) return false
@@ -156,7 +165,7 @@ export default function AssetsTab() {
             </button>
           </div>
           <div className="space-y-3">
-            {assets.financial.map((item, i) => (
+            {(assets.financial || []).map((item, i) => (
               <div key={i} className="group flex items-center justify-between p-3 rounded-xl bg-muted/5 border border-border/20 hover:border-border/40 transition-all">
                 <input
                   type="text"
@@ -206,7 +215,7 @@ export default function AssetsTab() {
             </button>
           </div>
           <div className="space-y-3">
-            {assets.vitals.map((item, i) => {
+            {(assets.vitals || []).map((item, i) => {
               const warning = isExpiringSoon(item.exp)
               return (
                 <div key={i} className={`group flex items-center justify-between p-3 rounded-xl border transition-all ${warning ? 'bg-danger/5 border-danger/30 shadow-[0_0_15px_rgba(244,63,94,0.1)]' : 'bg-muted/5 border-border/20 hover:border-border/40'}`}>
@@ -254,7 +263,7 @@ export default function AssetsTab() {
           </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          {assets.physical.map((item, i) => (
+          {(assets.physical || []).map((item, i) => (
             <div key={i} className="relative group p-4 rounded-xl bg-muted/5 border border-border/20 hover:border-border/40 transition-all space-y-3">
               <button 
                 onClick={() => removeItem('physical', i)}
@@ -310,8 +319,8 @@ export default function AssetsTab() {
           </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-          {assets.digital.map((item, i) => {
-            const Icon = item.icon || Globe
+          {(assets.digital || []).map((item, i) => {
+            const Icon = DIGITAL_ICONS[item.name] || Globe
             return (
               <div key={i} className="relative group p-4 rounded-xl bg-muted/5 border border-border/20 hover:border-border/40 transition-all space-y-4">
                 <button 
