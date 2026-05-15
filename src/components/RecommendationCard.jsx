@@ -54,14 +54,14 @@ export default function RecommendationCard({ balance, students, spendingItems })
     success: 'bg-success/10 border-success/30',
     warning: 'bg-warning/10 border-warning/30',
     danger: 'bg-danger/10 border-danger/30',
-    info: 'bg-blue-500/10 border-blue-500/30',
+    info: 'bg-primary/10 border-primary/30',
   }
 
   const iconColors = {
     success: 'text-success',
     warning: 'text-warning',
     danger: 'text-danger',
-    info: 'text-blue-400',
+    info: 'text-primary',
   }
 
   return (

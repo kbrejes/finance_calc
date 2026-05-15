@@ -63,22 +63,15 @@ export default function SpendingModal({ open, onOpenChange, onSubmit, initialDat
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
           <DialogTitle>{initialData ? 'Edit Spending Item' : 'Add Spending Item'}</DialogTitle>
-          <DialogDescription>
-            {initialData ? 'Update your expense item properties' : 'Create a new expense item for tracking'}
-          </DialogDescription>
         </DialogHeader>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Class Properties Section */}
           <div className="space-y-4">
-            <h4 className="text-sm font-semibold text-foreground border-b border-border pb-2">
-              Class Properties
-            </h4>
 
             <div className="grid grid-cols-2 gap-4">
               {/* Category */}
               <div className="space-y-2">
-                <Label htmlFor="category">Category</Label>
+                <Label htmlFor="category" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Category</Label>
                 <Select value={formData.category} onValueChange={(value) => handleChange('category', value)}>
                   <SelectTrigger id="category">
                     <SelectValue />
@@ -96,14 +89,14 @@ export default function SpendingModal({ open, onOpenChange, onSubmit, initialDat
 
               {/* Essential */}
               <div className="space-y-2">
-                <Label htmlFor="essential">Necessity</Label>
+                <Label htmlFor="essential" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Necessity</Label>
                 <Select value={formData.essential} onValueChange={(value) => handleChange('essential', value)}>
                   <SelectTrigger id="essential">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="true">✅ Essential</SelectItem>
-                    <SelectItem value="false">✨ Above Essential</SelectItem>
+                    <SelectItem value="true">Essential</SelectItem>
+                    <SelectItem value="false">Above Essential</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -111,7 +104,7 @@ export default function SpendingModal({ open, onOpenChange, onSubmit, initialDat
 
             {/* Class Name */}
             <div className="space-y-2">
-              <Label htmlFor="className">Class Name</Label>
+              <Label htmlFor="className" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Class Name</Label>
               <Input
                 id="className"
                 placeholder="e.g., Yoghurt"

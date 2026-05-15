@@ -4,6 +4,7 @@ export default function SummaryCard({ label, value, subtext, variant = 'default'
     success: 'text-success',
     danger: 'text-danger',
     info: 'text-primary',
+    muted: 'text-muted-foreground',
   }
 
   return (
