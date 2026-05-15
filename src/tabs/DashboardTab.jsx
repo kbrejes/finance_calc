@@ -125,7 +125,7 @@ export default function DashboardTab() {
       dailyItems,
       totalIncome: incSum,
       totalSpending: spendSum,
-      balance: totalLifetimeIncome - totalLifetimeSpending
+      balance: totalLifetimeIncome
     }
   }, [students, spending, currentMonth, currentYear, daysInMonth])
 
