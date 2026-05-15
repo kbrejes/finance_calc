@@ -18,11 +18,12 @@ import {
   SelectValue,
 } from './ui/select'
 
-export default function SpendingModal({ open, onOpenChange, onSubmit, initialData }) {
+export default function SpendingModal({ open, onOpenChange, onSubmit, initialData, accounts, formatNum }) {
   const [formData, setFormData] = useState({
     category: 'Housing',
     essential: 'true',
     className: '',
+    account: 'none',
   })
 
   useEffect(() => {
@@ -31,15 +32,17 @@ export default function SpendingModal({ open, onOpenChange, onSubmit, initialDat
         category: initialData.category || 'Housing',
         essential: initialData.isEssential ? 'true' : 'false',
         className: initialData.className || '',
+        account: initialData.account || 'none',
       })
     } else {
       setFormData({
         category: 'Housing',
         essential: 'true',
         className: '',
+        account: accounts && accounts.length > 0 ? accounts[0].name : 'none',
       })
     }
-  }, [initialData, open])
+  }, [initialData, open, accounts])
 
   const handleChange = (field, value) => {
     setFormData(prev => ({
@@ -102,9 +105,27 @@ export default function SpendingModal({ open, onOpenChange, onSubmit, initialDat
               </div>
             </div>
 
+            {/* Account Selector */}
+            <div className="space-y-2">
+              <Label htmlFor="account" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Extract From Balance</Label>
+              <Select value={formData.account} onValueChange={(value) => handleChange('account', value)}>
+                <SelectTrigger id="account" className="h-10">
+                  <SelectValue placeholder="Select Account" />
+                </SelectTrigger>
+                <SelectContent>
+                  {(accounts || []).map(acc => (
+                    <SelectItem key={acc.name} value={acc.name}>
+                      {acc.name} (฿{formatNum(acc.value)})
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="none">Manual Only (No Extraction)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Class Name */}
             <div className="space-y-2">
-              <Label htmlFor="className" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Class Name</Label>
+              <Label htmlFor="className" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Item Name</Label>
               <Input
                 id="className"
                 placeholder="e.g., Yoghurt"

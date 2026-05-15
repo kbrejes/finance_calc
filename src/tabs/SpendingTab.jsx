@@ -22,12 +22,18 @@ export default function SpendingTab() {
   const [editingItem, setEditingItem] = useState(null)
   const [calendarOpen, setCalendarOpen] = useState(false)
   const [selectedSpendingItem, setSelectedSpendingItem] = useState(null)
+  const [accounts, setAccounts] = useState([])
 
   useEffect(() => {
     // Load from API
     const loadSpending = async () => {
       const data = await api.fetchSpending()
       setSpending(data || [])
+      
+      const assetData = await api.fetchAssets()
+      if (assetData && assetData.financial) {
+        setAccounts(assetData.financial)
+      }
     }
     loadSpending()
   }, [])
@@ -40,6 +46,7 @@ export default function SpendingTab() {
         className: formData.className.trim(),
         instanceName: formData.className.trim(),
         isEssential: formData.essential === 'true',
+        account: formData.account,
       }
       const result = await api.updateSpending(editingItem.id, updatedItem)
       if (result) {
@@ -52,6 +59,7 @@ export default function SpendingTab() {
         className: formData.className.trim(),
         instanceName: formData.className.trim(),
         isEssential: formData.essential === 'true',
+        account: formData.account,
         pricePerUnit: 0,
         units: 1,
         purchaseDates: [],
@@ -82,6 +90,28 @@ export default function SpendingTab() {
 
   const handleUpdatePurchaseDates = async (dates) => {
     if (!selectedSpendingItem) return
+    
+    // Deduction logic
+    const oldDates = selectedSpendingItem.purchaseDates || []
+    const accountName = selectedSpendingItem.account || 'none'
+    
+    if (accountName !== 'none') {
+      const oldTotal = oldDates.reduce((sum, d) => sum + (typeof d === 'string' ? 0 : (d.cost || 0)), 0)
+      const newTotal = dates.reduce((sum, d) => sum + (typeof d === 'string' ? 0 : (d.cost || 0)), 0)
+      const diff = newTotal - oldTotal
+      
+      if (diff !== 0) {
+        const assetData = await api.fetchAssets()
+        if (assetData && assetData.financial) {
+          const updatedFinancial = assetData.financial.map(acc => 
+            acc.name === accountName ? { ...acc, value: (acc.value || 0) - diff } : acc
+          )
+          await api.saveAssets({ ...assetData, financial: updatedFinancial })
+          setAccounts(updatedFinancial)
+        }
+      }
+    }
+
     const result = await api.updateSpendingPurchaseDates(selectedSpendingItem.id, dates)
     if (result) {
       const updatedItem = { ...selectedSpendingItem, purchaseDates: dates }
@@ -89,7 +119,7 @@ export default function SpendingTab() {
         item.id === selectedSpendingItem.id ? updatedItem : item
       )
       setSpending(updated)
-      setSelectedSpendingItem(updatedItem) // Keep the modal in sync
+      setSelectedSpendingItem(updatedItem)
     }
   }
 
@@ -186,6 +216,8 @@ export default function SpendingTab() {
         }} 
         onSubmit={handleAddSpending}
         initialData={editingItem}
+        accounts={accounts}
+        formatNum={formatNum}
       />
 
       {selectedSpendingItem && (
