@@ -88,7 +88,7 @@ export default function DashboardTab() {
           const day = d.getDate() - 1
           const cost = typeof dateEntry === 'string' ? (item.pricePerUnit * item.units) : (dateEntry.cost || (item.pricePerUnit * item.units))
           dailySpending[day] += cost || 0
-          dailyItems[day].spendings.push({ name: item.name, amount: cost })
+          dailyItems[day].spendings.push({ name: item.className, amount: cost })
         }
       })
     })
