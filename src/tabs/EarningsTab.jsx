@@ -4,14 +4,12 @@ import { Plus } from 'lucide-react'
 import StudentModal from '../components/StudentModal'
 import StudentCard from '../components/StudentCard'
 import CalendarModal from '../components/CalendarModal'
-import StudentStatsModal from '../components/StudentStatsModal'
 import * as api from '../lib/api'
 
 export default function EarningsTab() {
   const [students, setStudents] = useState([])
   const [studentModalOpen, setStudentModalOpen] = useState(false)
   const [calendarModalOpen, setCalendarModalOpen] = useState(false)
-  const [statsModalOpen, setStatsModalOpen] = useState(false)
   const [selectedStudent, setSelectedStudent] = useState(null)
   const [editingStudent, setEditingStudent] = useState(null)
 
@@ -41,7 +39,8 @@ export default function EarningsTab() {
         price: parseFloat(formData.price),
         status: formData.status,
         attendanceDates: [],
-        payments: []
+        payments: [],
+        adjustments: []
       }
       const result = await api.addStudent(newStudent)
       if (result) {
@@ -113,13 +112,9 @@ export default function EarningsTab() {
             <StudentCard
               key={student.id}
               student={student}
-              onCalendar={() => {
+              onClick={() => {
                 setSelectedStudent(student)
                 setCalendarModalOpen(true)
-              }}
-              onStats={() => {
-                setSelectedStudent(student)
-                setStatsModalOpen(true)
               }}
               onDelete={() => handleDeleteStudent(student.id)}
               onEdit={(s) => {
@@ -142,24 +137,14 @@ export default function EarningsTab() {
       />
 
       {selectedStudent && (
-        <>
-          <CalendarModal
-            open={calendarModalOpen}
-            onOpenChange={setCalendarModalOpen}
-            studentName={selectedStudent.name}
-            attendanceDates={selectedStudent.attendanceDates}
-            payments={selectedStudent.payments || []}
-            avgLessonPrice={selectedStudent.price}
-            onUpdateAttendance={handleUpdateAttendance}
-            onUpdatePayments={handleUpdatePayments}
-          />
-          <StudentStatsModal
-            open={statsModalOpen}
-            onOpenChange={setStatsModalOpen}
-            student={selectedStudent}
-            onUpdateAdjustments={handleUpdateAdjustments}
-          />
-        </>
+        <CalendarModal
+          open={calendarModalOpen}
+          onOpenChange={setCalendarModalOpen}
+          student={selectedStudent}
+          onUpdateAttendance={handleUpdateAttendance}
+          onUpdatePayments={handleUpdatePayments}
+          onUpdateAdjustments={handleUpdateAdjustments}
+        />
       )}
     </div>
   )
