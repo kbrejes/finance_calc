@@ -145,6 +145,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                 const dateStr = day ? formatDate(currentDate.getFullYear(), currentDate.getMonth(), day) : ''
                 const entries = day ? (item?.purchaseDates || []).filter(p => (typeof p === 'string' ? p : p.date) === dateStr) : []
                 const isMarked = entries.length > 0
+                const dayTotal = entries.reduce((sum, e) => sum + (typeof e === 'string' ? (item.pricePerUnit * item.units) : (e.cost || 0)), 0)
                 const isCurrentlySelected = selectedDate === dateStr
                 
                 const today = new Date()
@@ -158,7 +159,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                     key={`${weekIdx}-${dayIdx}`}
                     onClick={() => day && !isFuture && handleDayClick(day)}
                     disabled={!day || isFuture}
-                    className={`relative h-9 w-9 rounded-lg text-xs font-bold transition-all duration-200 ${
+                    className={`relative h-10 w-10 rounded-lg flex flex-col items-center justify-center transition-all duration-200 ${
                       !day
                         ? 'bg-transparent border-transparent'
                         : isFuture
@@ -170,7 +171,12 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                         : 'border border-border/40 text-muted-foreground/60 hover:bg-muted/30 hover:text-foreground'
                     }`}
                   >
-                    {day}
+                    <span className={isMarked ? 'text-[10px] font-bold leading-none' : 'text-xs font-bold'}>{day}</span>
+                    {isMarked && (
+                      <span className="text-[7px] font-medium leading-none mt-0.5 opacity-80">
+                        ฿{dayTotal >= 1000 ? (dayTotal / 1000).toFixed(dayTotal % 1000 === 0 ? 0 : 1) + 'k' : dayTotal}
+                      </span>
+                    )}
                     {isMarked && entries.length > 1 && (
                       <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-[8px] font-black text-primary-foreground shadow-sm">
                         {entries.length}
