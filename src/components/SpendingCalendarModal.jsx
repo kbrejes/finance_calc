@@ -236,14 +236,17 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
 
               {/* List of existing entries for the day */}
               <div className="space-y-2">
-                {dayEntries.map((rawEntry, idx) => {
-                  // Normalize legacy string entries to object format
+                {(item.purchaseDates || []).map((rawEntry, globalIdx) => {
+                  const entryDate = typeof rawEntry === 'string' ? rawEntry : rawEntry.date;
+                  if (entryDate !== selectedDate) return null;
+
+                  // Normalize legacy string entries using the GLOBAL index as ID
                   const entry = typeof rawEntry === 'string' 
-                    ? { id: `legacy-${idx}`, date: rawEntry, name: item.className, cost: (item.pricePerUnit * item.units) }
+                    ? { id: `legacy-${globalIdx}`, date: rawEntry, name: item.className, cost: (item.pricePerUnit * item.units) }
                     : rawEntry;
 
                   return (
-                    <div key={entry.id || idx} className="group flex items-center justify-between p-2.5 rounded-lg bg-muted/20 border border-border/30 hover:border-border/60 transition-colors">
+                    <div key={entry.id || `entry-${globalIdx}`} className="group flex items-center justify-between p-2.5 rounded-lg bg-muted/20 border border-border/30 hover:border-border/60 transition-colors">
                       <div className="flex flex-col">
                         <span className="text-[11px] font-bold text-foreground/80">{entry.name || item.className}</span>
                         <span className="text-[10px] font-medium text-muted-foreground/70">฿{(entry.cost || 0).toLocaleString()}</span>
@@ -256,7 +259,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                           <Pencil className="h-3 w-3" />
                         </button>
                         <button 
-                          onClick={() => handleRemoveEntry(entry.id)}
+                          onClick={() => handleRemoveEntry(entry.id || `entry-${globalIdx}`)}
                           className="p-1.5 text-muted-foreground/40 hover:text-danger transition-colors"
                         >
                           <Trash2 className="h-3 w-3" />
