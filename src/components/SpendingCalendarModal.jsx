@@ -38,7 +38,8 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
       setCostInput(cost.toString())
     } else {
       setIsEditing(false)
-      setCostInput((item.pricePerUnit * item.units).toString())
+      const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
+      setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
     }
   }
 

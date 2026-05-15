@@ -6,6 +6,13 @@ import SpendingItem from '../components/SpendingItem'
 import SpendingCalendarModal from '../components/SpendingCalendarModal'
 import * as api from '../lib/api'
 import { getCalculatedSpendingMetrics } from '../lib/financeUtils'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../components/ui/select'
 
 export default function SpendingTab() {
   const [spending, setSpending] = useState([])
@@ -126,29 +133,31 @@ export default function SpendingTab() {
       </div>
 
       <div className="flex gap-3 flex-wrap">
-        <select
-          value={filter}
-          onChange={(e) => setFilter(e.target.value)}
-          className="rounded-md bg-input border border-border px-3 py-2 text-sm text-foreground"
-        >
-          {categories.map(cat => (
-            <option key={cat} value={cat}>
-              {cat === 'All' ? 'All Categories' : cat}
-            </option>
-          ))}
-        </select>
+        <Select value={filter} onValueChange={setFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Category" />
+          </SelectTrigger>
+          <SelectContent>
+            {categories.map(cat => (
+              <SelectItem key={cat} value={cat}>
+                {cat === 'All' ? 'All Categories' : cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
 
-        <select
-          value={sort}
-          onChange={(e) => setSort(e.target.value)}
-          className="rounded-md bg-input border border-border px-3 py-2 text-sm text-foreground"
-        >
-          <option value="next-payment">Sort: Next Payment</option>
-          <option value="name">Sort: Name</option>
-          <option value="price-asc">Sort: Price ↑</option>
-          <option value="price-desc">Sort: Price ↓</option>
-          <option value="category">Sort: Category</option>
-        </select>
+        <Select value={sort} onValueChange={setSort}>
+          <SelectTrigger className="w-[180px] pr-4">
+            <SelectValue placeholder="Sort" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="next-payment">Next Payment</SelectItem>
+            <SelectItem value="name">Name</SelectItem>
+            <SelectItem value="price-asc">Price ↑</SelectItem>
+            <SelectItem value="price-desc">Price ↓</SelectItem>
+            <SelectItem value="category">Category</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       {filtered.length === 0 ? (
