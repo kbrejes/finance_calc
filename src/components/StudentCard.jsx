@@ -58,32 +58,44 @@ export default function StudentCard({ student, onCalendar, onDelete, onEdit }) {
         </div>
       </div>
 
-      {/* Split Widget Stats with Inset Dividers */}
-      <div className="relative grid grid-cols-2 rounded-lg bg-muted/5 p-1">
-        {/* Dividers */}
-        <div className="absolute top-1/2 left-4 right-4 h-[1px] bg-border/20 -translate-y-1/2" />
-        <div className="absolute left-1/2 top-3 bottom-3 w-[1px] bg-border/20 -translate-x-1/2" />
-
-        <div className="p-3 rounded-tl-md">
+      {/* Key Metrics: Daily, LTV, Rate */}
+      <div className="grid grid-cols-3 gap-1 rounded-lg bg-muted/5 p-1">
+        <div className="p-2.5">
           <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">Rate</div>
           <div className="text-xs font-bold text-foreground/80">฿{formatNum(student.price)}</div>
         </div>
-        <div className="p-3 rounded-tr-md">
-          <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">Freq</div>
-          <div className="text-xs font-bold text-foreground/80">
-            {metrics.hasData ? `${Math.round(metrics.avgDays)}d` : '—'}
-          </div>
-        </div>
-        <div className="p-3 rounded-bl-md">
-          <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">Attend</div>
-          <div className="text-xs font-bold text-foreground/80">
-            {metrics.hasData ? `${metrics.lessonsPerMonth.toFixed(1)}` : '—'}
-          </div>
-        </div>
-        <div className="p-3 rounded-br-md">
+        <div className="p-2.5 border-x border-border/10">
           <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">Daily</div>
           <div className="text-xs font-bold text-foreground/80">
             {metrics.hasData ? `฿${formatNum(metrics.dailyIncome)}` : '—'}
+          </div>
+        </div>
+        <div className="p-2.5">
+          <div className="text-[8px] uppercase tracking-[0.2em] text-muted-foreground/40 font-bold mb-0.5">LTV</div>
+          <div className="text-xs font-black text-primary/80">
+            ฿{formatNum(metrics.ltv)}
+          </div>
+        </div>
+      </div>
+
+      {/* Hover Info Popover */}
+      <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-card/95 backdrop-blur-md border-t border-border/40 p-3 shadow-2xl z-10">
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <div className="text-[7px] uppercase tracking-widest text-muted-foreground/50 font-bold">Frequency</div>
+            <div className="text-[10px] font-bold text-foreground/70">{metrics.hasData ? `${Math.round(metrics.avgDays)} days` : '—'}</div>
+          </div>
+          <div>
+            <div className="text-[7px] uppercase tracking-widest text-muted-foreground/50 font-bold">Attendance</div>
+            <div className="text-[10px] font-bold text-foreground/70">{metrics.hasData ? `${metrics.lessonsPerMonth.toFixed(1)} /mo` : '—'}</div>
+          </div>
+          <div>
+            <div className="text-[7px] uppercase tracking-widest text-muted-foreground/50 font-bold">Lessons</div>
+            <div className="text-[10px] font-bold text-foreground/70">{(student.attendanceDates || []).length} total</div>
+          </div>
+          <div>
+            <div className="text-[7px] uppercase tracking-widest text-muted-foreground/50 font-bold">Status</div>
+            <div className="text-[10px] font-bold text-foreground/70 capitalize">{student.status || 'active'}</div>
           </div>
         </div>
       </div>

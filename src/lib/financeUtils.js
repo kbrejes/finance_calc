@@ -105,12 +105,14 @@ export function getCalculatedStudentMetrics(student) {
   const lessonsPerMonth = 30.44 / avgDays;
   const dailyIncome = student.price / avgDays;
   const monthlyProjection = student.price * lessonsPerMonth;
+  const ltv = (student.attendanceDates || []).length * student.price;
 
   return {
     hasData: true,
     avgDays,
     lessonsPerMonth,
     dailyIncome,
-    monthlyProjection
+    monthlyProjection,
+    ltv
   };
 }
