@@ -69,12 +69,24 @@ export default function AssetsTab() {
     }
   }
 
-  const updateSection = (section, index, field, value) => {
-    const newData = { 
+  const addItem = (section) => {
+    const defaults = {
+      physical: { name: 'New Physical Asset', min: 0, max: 0 },
+      financial: { name: 'New Account', value: 0, currency: 'THB' },
+      vitals: { name: 'New Document', exp: new Date().toISOString().split('T')[0] },
+      digital: { name: 'New Channel', sub: 0, posts: 0, icon: Globe }
+    }
+    const newData = {
       ...assets,
-      [section]: assets[section].map((item, i) => 
-        i === index ? { ...item, [field]: value } : item
-      )
+      [section]: [...assets[section], defaults[section]]
+    }
+    handleSave(newData)
+  }
+
+  const removeItem = (section, index) => {
+    const newData = {
+      ...assets,
+      [section]: assets[section].filter((_, i) => i !== index)
     }
     handleSave(newData)
   }
@@ -82,21 +94,34 @@ export default function AssetsTab() {
   if (isLoading) return <div className="p-8 text-center text-muted-foreground animate-pulse">Initializing Vault...</div>
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-500">
+    <div className="space-y-8 animate-in fade-in duration-500 pb-20">
       {/* Financial & Vitals (Top Row) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Financial Assets */}
-        <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Wallet className="h-5 w-5 text-primary" />
+        <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <Wallet className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Liquid Capital</h3>
             </div>
-            <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Liquid Capital</h3>
+            <button 
+              onClick={() => addItem('financial')}
+              className="p-1.5 rounded-full hover:bg-muted text-muted-foreground/40 hover:text-primary transition-all opacity-0 group-hover/section:opacity-100"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
           </div>
           <div className="space-y-3">
             {assets.financial.map((item, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-muted/5 border border-border/20">
-                <span className="text-xs font-bold text-muted-foreground">{item.name}</span>
+              <div key={i} className="group flex items-center justify-between p-3 rounded-xl bg-muted/5 border border-border/20 hover:border-border/40 transition-all">
+                <input
+                  type="text"
+                  value={item.name}
+                  onChange={(e) => updateSection('financial', i, 'name', e.target.value)}
+                  className="bg-transparent text-xs font-bold text-muted-foreground focus:outline-none w-1/2"
+                />
                 <div className="flex items-center gap-2">
                   <input
                     type="number"
@@ -104,7 +129,18 @@ export default function AssetsTab() {
                     onChange={(e) => updateSection('financial', i, 'value', parseFloat(e.target.value) || 0)}
                     className="w-24 bg-transparent text-right text-sm font-black text-foreground focus:outline-none hover:bg-primary/5 focus:bg-primary/10 px-1 rounded transition-colors cursor-pointer"
                   />
-                  <span className="text-[10px] font-bold text-muted-foreground/40">{item.currency}</span>
+                  <input
+                    type="text"
+                    value={item.currency}
+                    onChange={(e) => updateSection('financial', i, 'currency', e.target.value)}
+                    className="w-10 bg-transparent text-[10px] font-bold text-muted-foreground/40 focus:outline-none uppercase"
+                  />
+                  <button 
+                    onClick={() => removeItem('financial', i)}
+                    className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground/30 hover:text-danger transition-all ml-1"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
                 </div>
               </div>
             ))}
@@ -112,23 +148,44 @@ export default function AssetsTab() {
         </div>
 
         {/* Vital Documents */}
-        <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <ShieldCheck className="h-5 w-5 text-primary" />
+        <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <ShieldCheck className="h-5 w-5 text-primary" />
+              </div>
+              <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Vital Documents</h3>
             </div>
-            <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Vital Documents</h3>
+            <button 
+              onClick={() => addItem('vitals')}
+              className="p-1.5 rounded-full hover:bg-muted text-muted-foreground/40 hover:text-primary transition-all opacity-0 group-hover/section:opacity-100"
+            >
+              <Plus className="h-4 w-4" />
+            </button>
           </div>
           <div className="space-y-3">
             {assets.vitals.map((item, i) => (
-              <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-muted/5 border border-border/20">
-                <span className="text-xs font-bold text-muted-foreground">{item.name}</span>
+              <div key={i} className="group flex items-center justify-between p-3 rounded-xl bg-muted/5 border border-border/20 hover:border-border/40 transition-all">
                 <input
-                  type="date"
-                  value={item.exp}
-                  onChange={(e) => updateSection('vitals', i, 'exp', e.target.value)}
-                  className="bg-transparent text-right text-[11px] font-bold text-primary focus:outline-none cursor-pointer hover:bg-primary/5 focus:bg-primary/10 px-1 rounded transition-colors"
+                  type="text"
+                  value={item.name}
+                  onChange={(e) => updateSection('vitals', i, 'name', e.target.value)}
+                  className="bg-transparent text-xs font-bold text-muted-foreground focus:outline-none w-1/2"
                 />
+                <div className="flex items-center gap-2">
+                  <input
+                    type="date"
+                    value={item.exp}
+                    onChange={(e) => updateSection('vitals', i, 'exp', e.target.value)}
+                    className="bg-transparent text-right text-[11px] font-bold text-primary focus:outline-none cursor-pointer hover:bg-primary/5 focus:bg-primary/10 px-1 rounded transition-colors"
+                  />
+                  <button 
+                    onClick={() => removeItem('vitals', i)}
+                    className="opacity-0 group-hover:opacity-100 p-1 text-muted-foreground/30 hover:text-danger transition-all ml-1"
+                  >
+                    <Trash2 className="h-3 w-3" />
+                  </button>
+                </div>
               </div>
             ))}
           </div>
@@ -136,17 +193,36 @@ export default function AssetsTab() {
       </div>
 
       {/* Physical Assets (Middle) */}
-      <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <FileText className="h-5 w-5 text-primary" />
+      <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <FileText className="h-5 w-5 text-primary" />
+            </div>
+            <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Physical Inventory</h3>
           </div>
-          <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Physical Inventory</h3>
+          <button 
+            onClick={() => addItem('physical')}
+            className="p-1.5 rounded-full hover:bg-muted text-muted-foreground/40 hover:text-primary transition-all opacity-0 group-hover/section:opacity-100"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {assets.physical.map((item, i) => (
-            <div key={i} className="p-4 rounded-xl bg-muted/5 border border-border/20 space-y-3">
-              <div className="text-[10px] font-black text-foreground/70 uppercase tracking-tight">{item.name}</div>
+            <div key={i} className="relative group p-4 rounded-xl bg-muted/5 border border-border/20 hover:border-border/40 transition-all space-y-3">
+              <button 
+                onClick={() => removeItem('physical', i)}
+                className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 text-muted-foreground/30 hover:text-danger transition-all"
+              >
+                <Trash2 className="h-3 w-3" />
+              </button>
+              <input
+                type="text"
+                value={item.name}
+                onChange={(e) => updateSection('physical', i, 'name', e.target.value)}
+                className="text-[10px] font-black text-foreground/70 uppercase tracking-tight bg-transparent focus:outline-none w-full pr-6"
+              />
               <div className="flex flex-col gap-1.5">
                 <div className="flex items-center justify-between">
                   <span className="text-[9px] text-muted-foreground/50 font-bold uppercase">Min ฿</span>
@@ -173,21 +249,40 @@ export default function AssetsTab() {
       </div>
 
       {/* Digital Equity / KPIs (Bottom Row) */}
-      <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm">
-        <div className="flex items-center gap-3 mb-6">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Globe className="h-5 w-5 text-primary" />
+      <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Globe className="h-5 w-5 text-primary" />
+            </div>
+            <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Digital Equity & KPIs</h3>
           </div>
-          <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Digital Equity & KPIs</h3>
+          <button 
+            onClick={() => addItem('digital')}
+            className="p-1.5 rounded-full hover:bg-muted text-muted-foreground/40 hover:text-primary transition-all opacity-0 group-hover/section:opacity-100"
+          >
+            <Plus className="h-4 w-4" />
+          </button>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {assets.digital.map((item, i) => {
             const Icon = item.icon || Globe
             return (
-              <div key={i} className="p-4 rounded-xl bg-muted/5 border border-border/20 space-y-4">
+              <div key={i} className="relative group p-4 rounded-xl bg-muted/5 border border-border/20 hover:border-border/40 transition-all space-y-4">
+                <button 
+                  onClick={() => removeItem('digital', i)}
+                  className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 p-1 text-muted-foreground/30 hover:text-danger transition-all"
+                >
+                  <Trash2 className="h-3 w-3" />
+                </button>
                 <div className="flex items-center gap-2">
                   <Icon className="h-4 w-4 text-muted-foreground/60" />
-                  <span className="text-[10px] font-black text-foreground/70 uppercase">{item.name}</span>
+                  <input
+                    type="text"
+                    value={item.name}
+                    onChange={(e) => updateSection('digital', i, 'name', e.target.value)}
+                    className="text-[10px] font-black text-foreground/70 uppercase bg-transparent focus:outline-none w-full pr-4"
+                  />
                 </div>
                 <div className="space-y-3">
                   <div>
