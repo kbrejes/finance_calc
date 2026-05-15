@@ -67,10 +67,10 @@ export default function DashboardTab() {
     const dailySpending = new Array(daysInMonth).fill(0)
 
     students.forEach(student => {
-      student.attendanceDates?.forEach(dateEntry => {
-        const d = new Date(typeof dateEntry === 'string' ? dateEntry : dateEntry.date)
+      student.payments?.forEach(payment => {
+        const d = new Date(payment.date)
         if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
-          dailyIncome[d.getDate() - 1] += student.price || 0
+          dailyIncome[d.getDate() - 1] += payment.amount || 0
         }
       })
     })
@@ -97,6 +97,13 @@ export default function DashboardTab() {
       cumulativeSpending.push(spendSum)
     }
 
+    // Calculate LIFETIME balance (Total Payments - Total Spending)
+    const totalLifetimeIncome = students.reduce((acc, s) => acc + (s.payments || []).reduce((pAcc, p) => pAcc + p.amount, 0), 0)
+    const totalLifetimeSpending = spending.reduce((acc, s) => acc + (s.purchaseDates || []).reduce((dAcc, d) => {
+      const cost = typeof d === 'string' ? (s.pricePerUnit * s.units) : (d.cost || (s.pricePerUnit * s.units))
+      return dAcc + (cost || 0)
+    }, 0), 0)
+
     return { 
       cumulativeIncome, 
       cumulativeSpending, 
@@ -104,7 +111,7 @@ export default function DashboardTab() {
       dailySpending,
       totalIncome: incSum,
       totalSpending: spendSum,
-      balance: incSum - spendSum
+      balance: totalLifetimeIncome - totalLifetimeSpending
     }
   }, [students, spending, currentMonth, currentYear, daysInMonth])
 
