@@ -79,13 +79,22 @@ export default function EarningsTab() {
     }
   }
 
+  const handleUpdatePayments = async (payments) => {
+    const result = await api.updateStudent(selectedStudent.id, { ...selectedStudent, payments })
+    if (result) {
+      setStudents(students.map(s => s.id === selectedStudent.id ? { ...s, payments } : s))
+      setSelectedStudent({ ...selectedStudent, payments })
+    }
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-700">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-2xl font-semibold">ESL Students</h3>
+          <h3 className="text-sm font-black uppercase tracking-[0.2em] text-foreground/80">ESL Students</h3>
+          <p className="text-[10px] font-bold text-muted-foreground/40 uppercase">Prepaid Ledger & Management</p>
         </div>
-        <Button size="icon" variant="default" onClick={() => {
+        <Button size="icon" variant="outline" className="rounded-xl border-border/40 hover:bg-primary hover:text-white transition-all shadow-sm" onClick={() => {
           setEditingStudent(null)
           setStudentModalOpen(true)
         }}>

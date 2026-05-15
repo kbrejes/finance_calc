@@ -83,13 +83,25 @@ export function getCalculatedSpendingMetrics(item) {
 }
 
 export function getCalculatedStudentMetrics(student) {
+  const attendanceCount = (student.attendanceDates || []).length;
+  const lessonPrice = student.price || 0;
+  const totalCost = attendanceCount * lessonPrice;
+  
+  const payments = student.payments || [];
+  const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  const balance = totalPaid - totalCost;
+
   if (!student.attendanceDates || student.attendanceDates.length < 2) {
     return {
       hasData: false,
       avgDays: null,
       lessonsPerMonth: 0,
       dailyIncome: 0,
-      monthlyProjection: 0
+      monthlyProjection: 0,
+      totalCost,
+      totalPaid,
+      balance,
+      ltv: totalCost
     };
   }
 
@@ -105,7 +117,7 @@ export function getCalculatedStudentMetrics(student) {
   const lessonsPerMonth = 30.44 / avgDays;
   const dailyIncome = student.price / avgDays;
   const monthlyProjection = student.price * lessonsPerMonth;
-  const ltv = (student.attendanceDates || []).length * student.price;
+  const ltv = totalCost;
 
   return {
     hasData: true,
@@ -113,6 +125,9 @@ export function getCalculatedStudentMetrics(student) {
     lessonsPerMonth,
     dailyIncome,
     monthlyProjection,
-    ltv
+    ltv,
+    totalCost,
+    totalPaid,
+    balance
   };
 }

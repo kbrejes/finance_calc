@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ChevronLeft, ChevronRight, X } from 'lucide-react'
+import { ChevronLeft, ChevronRight, X, Wallet, CheckCircle2, CircleDot } from 'lucide-react'
 import {
   Dialog,
   DialogContent,
@@ -7,30 +7,38 @@ import {
   DialogTitle,
 } from './ui/dialog'
 import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { formatNum } from '../lib/financeUtils'
 
-export default function CalendarModal({ open, onOpenChange, studentName, attendanceDates, onUpdateAttendance }) {
+export default function CalendarModal({ 
+  open, 
+  onOpenChange, 
+  studentName, 
+  attendanceDates = [], 
+  payments = [],
+  avgLessonPrice = 0,
+  onUpdateAttendance,
+  onUpdatePayments 
+}) {
   const [currentDate, setCurrentDate] = useState(new Date())
+  const [viewMode, setViewMode] = useState('attendance') // 'attendance' or 'payments'
   const [markedDates, setMarkedDates] = useState(new Set())
+  const [paymentMap, setPaymentMap] = useState({})
 
   useEffect(() => {
-    if (attendanceDates) {
-      setMarkedDates(new Set(attendanceDates))
-    }
+    setMarkedDates(new Set(attendanceDates))
   }, [attendanceDates])
 
-  const getDaysInMonth = (date) => {
-    return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
-  }
+  useEffect(() => {
+    const map = {}
+    payments.forEach(p => { map[p.date] = p.amount })
+    setPaymentMap(map)
+  }, [payments])
 
-  const getFirstDayOfMonth = (date) => {
-    return new Date(date.getFullYear(), date.getMonth(), 1).getDay()
-  }
+  const getDaysInMonth = (date) => new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
+  const getFirstDayOfMonth = (date) => new Date(date.getFullYear(), date.getMonth(), 1).getDay()
+  const formatDate = (year, month, day) => `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
 
-  const formatDate = (year, month, day) => {
-    return `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`
-  }
-
-  const toggleDate = (day) => {
+  const toggleAttendance = (day) => {
     const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day)
     const newMarked = new Set(markedDates)
     if (newMarked.has(dateStr)) {
@@ -38,106 +46,161 @@ export default function CalendarModal({ open, onOpenChange, studentName, attenda
     } else {
       newMarked.add(dateStr)
     }
-    const updatedDates = Array.from(newMarked)
-    setMarkedDates(newMarked)
-    onUpdateAttendance(updatedDates) // Auto-save
+    onUpdateAttendance(Array.from(newMarked))
   }
 
-  const handlePrevMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))
+  const handlePaymentClick = (day) => {
+    const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day)
+    const currentAmount = paymentMap[dateStr] || 0
+    const val = prompt(`Enter payment amount for ${dateStr}:`, currentAmount)
+    
+    if (val !== null) {
+      const amount = parseFloat(val) || 0
+      const newPayments = payments.filter(p => p.date !== dateStr)
+      if (amount > 0) {
+        newPayments.push({ date: dateStr, amount })
+      }
+      onUpdatePayments(newPayments)
+    }
   }
 
-  const handleNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))
-  }
+  const handlePrevMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1))
+  const handleNextMonth = () => setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1))
 
   const daysInMonth = getDaysInMonth(currentDate)
   const firstDay = getFirstDayOfMonth(currentDate)
   const monthName = currentDate.toLocaleString('default', { month: 'long', year: 'numeric' })
   
   const days = []
-  for (let i = 0; i < firstDay; i++) {
-    days.push(null)
-  }
-  for (let i = 1; i <= daysInMonth; i++) {
-    days.push(i)
-  }
+  for (let i = 0; i < firstDay; i++) days.push(null)
+  for (let i = 1; i <= daysInMonth; i++) days.push(i)
 
   const rows = []
-  for (let i = 0; i < days.length; i += 7) {
-    rows.push(days.slice(i, i + 7))
-  }
+  for (let i = 0; i < days.length; i += 7) rows.push(days.slice(i, i + 7))
+
+  // Calculation for Ledger Footer
+  const totalCost = (attendanceDates || []).length * avgLessonPrice
+  const totalPaid = (payments || []).reduce((sum, p) => sum + (p.amount || 0), 0)
+  const balance = totalPaid - totalCost
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[380px] p-6 border-border/40 bg-card/95 backdrop-blur-xl">
-        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent data-[state=open]:text-muted-foreground">
+      <DialogContent className="sm:max-w-[400px] p-0 overflow-hidden border-border/40 bg-card/95 backdrop-blur-xl shadow-2xl">
+        <DialogPrimitive.Close className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none z-50">
           <X className="h-4 w-4" />
-          <span className="sr-only">Close</span>
         </DialogPrimitive.Close>
 
-        <DialogHeader className="mb-6">
-          <DialogTitle className="text-xl font-bold tracking-tight text-foreground/90">{studentName}</DialogTitle>
-        </DialogHeader>
+        <div className="p-6 pb-0">
+          <DialogHeader className="mb-4">
+            <div className="flex flex-col gap-1">
+              <DialogTitle className="text-xl font-black tracking-tight text-foreground/90 uppercase">{studentName}</DialogTitle>
+              <div className="text-[10px] font-bold text-muted-foreground/40 uppercase tracking-widest">Student Ledger & Tracking</div>
+            </div>
+          </DialogHeader>
 
-        <div className="space-y-6">
-          {/* Calendar Navigation */}
-          <div className="flex items-center justify-between px-1">
-            <button
-              onClick={handlePrevMonth}
-              className="p-1 hover:bg-muted rounded-full transition-colors"
+          {/* Mode Switcher */}
+          <div className="flex p-1 bg-muted/20 rounded-xl border border-border/40 mb-6">
+            <button 
+              onClick={() => setViewMode('attendance')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'attendance' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground/50 hover:text-muted-foreground'}`}
             >
-              <ChevronLeft className="h-5 w-5 text-muted-foreground" />
+              <CheckCircle2 className="h-3 w-3" />
+              Attendance
             </button>
-            <span className="text-sm font-bold text-foreground/80 tracking-wide">{monthName}</span>
-            <button
-              onClick={handleNextMonth}
-              className="p-1 hover:bg-muted rounded-full transition-colors"
+            <button 
+              onClick={() => setViewMode('payments')}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[10px] font-black uppercase tracking-widest transition-all ${viewMode === 'payments' ? 'bg-card text-foreground shadow-sm' : 'text-muted-foreground/50 hover:text-muted-foreground'}`}
             >
-              <ChevronRight className="h-5 w-5 text-muted-foreground" />
+              <Wallet className="h-3 w-3" />
+              Payments
             </button>
           </div>
 
-          {/* Calendar Grid */}
-          <div className="grid grid-cols-7 gap-2">
-            {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
-              <div key={day} className="h-8 flex items-center justify-center text-[10px] font-black text-muted-foreground/30">
-                {day}
+          <div className="space-y-6 pb-6">
+            <div className="flex items-center justify-between px-1">
+              <button onClick={handlePrevMonth} className="p-1.5 hover:bg-muted rounded-xl transition-all">
+                <ChevronLeft className="h-4 w-4 text-muted-foreground" />
+              </button>
+              <span className="text-xs font-black text-foreground/80 uppercase tracking-widest">{monthName}</span>
+              <button onClick={handleNextMonth} className="p-1.5 hover:bg-muted rounded-xl transition-all">
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-7 gap-1">
+              {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(day => (
+                <div key={day} className="h-8 flex items-center justify-center text-[9px] font-black text-muted-foreground/20">
+                  {day}
+                </div>
+              ))}
+              {rows.map((week, weekIdx) =>
+                week.map((day, dayIdx) => {
+                  if (!day) return <div key={`${weekIdx}-${dayIdx}`} className="h-10 w-10" />
+                  
+                  const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day)
+                  const isMarked = markedDates.has(dateStr)
+                  const paymentAmount = paymentMap[dateStr]
+                  
+                  const today = new Date()
+                  today.setHours(0,0,0,0)
+                  const checkDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
+                  const isFuture = checkDate > today
+                  const isToday = checkDate.getTime() === today.getTime()
+                  
+                  return (
+                    <button
+                      key={`${weekIdx}-${dayIdx}`}
+                      onClick={() => !isFuture && (viewMode === 'attendance' ? toggleAttendance(day) : handlePaymentClick(day))}
+                      disabled={isFuture}
+                      className={`h-10 w-10 rounded-xl text-xs font-bold transition-all relative flex flex-col items-center justify-center ${
+                        isFuture ? 'text-muted-foreground/10 cursor-not-allowed' :
+                        viewMode === 'attendance' ? (
+                          isMarked ? 'bg-primary text-primary-foreground shadow-lg scale-105' :
+                          isToday ? 'border-2 border-primary/40 bg-primary/5' : 'border border-border/20 text-muted-foreground/60 hover:border-border/60'
+                        ) : (
+                          paymentAmount ? 'bg-emerald-500 text-white shadow-lg scale-105 shadow-emerald-500/20' :
+                          isToday ? 'border-2 border-emerald-500/40 bg-emerald-500/5' : 'border border-border/20 text-muted-foreground/60 hover:border-emerald-500/40'
+                        )
+                      }`}
+                    >
+                      <span>{day}</span>
+                      {paymentAmount && viewMode === 'attendance' && (
+                        <div className="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-emerald-500 border border-card" />
+                      )}
+                      {viewMode === 'payments' && paymentAmount > 0 && (
+                        <div className="text-[7px] font-black absolute bottom-1 truncate max-w-full px-1">
+                          ฿{formatNum(paymentAmount)}
+                        </div>
+                      )}
+                    </button>
+                  )
+                })
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* Dynamic Ledger Footer */}
+        <div className="bg-muted/30 border-t border-border/40 p-5 space-y-3">
+          <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-muted-foreground/50">
+            <span>Student Standing</span>
+            <span>Summary</span>
+          </div>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="p-2 rounded-lg bg-card border border-border/40">
+              <div className="text-[7px] font-black text-muted-foreground/40 uppercase mb-1">Total Lessons</div>
+              <div className="text-[10px] font-black text-foreground/70">฿{formatNum(totalCost)}</div>
+            </div>
+            <div className="p-2 rounded-lg bg-card border border-border/40">
+              <div className="text-[7px] font-black text-muted-foreground/40 uppercase mb-1">Total Paid</div>
+              <div className="text-[10px] font-black text-emerald-500">฿{formatNum(totalPaid)}</div>
+            </div>
+            <div className={`p-2 rounded-lg border shadow-sm ${balance >= 0 ? 'bg-emerald-500/5 border-emerald-500/30' : 'bg-rose-500/5 border-rose-500/30'}`}>
+              <div className="text-[7px] font-black text-muted-foreground/40 uppercase mb-1">Balance</div>
+              <div className={`text-[10px] font-black ${balance >= 0 ? 'text-emerald-500' : 'text-rose-500'}`}>
+                ฿{formatNum(balance)}
               </div>
-            ))}
-            {rows.map((week, weekIdx) =>
-              week.map((day, dayIdx) => {
-                const dateStr = day ? formatDate(currentDate.getFullYear(), currentDate.getMonth(), day) : ''
-                const isMarked = day && markedDates.has(dateStr)
-                const today = new Date()
-                today.setHours(0, 0, 0, 0)
-                const checkDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day)
-                checkDate.setHours(0, 0, 0, 0)
-                const isFuture = day && checkDate > today
-                const isToday = day && checkDate.getTime() === today.getTime()
-                
-                return (
-                  <button
-                    key={`${weekIdx}-${dayIdx}`}
-                    onClick={() => day && !isFuture && toggleDate(day)}
-                    disabled={!day || isFuture}
-                    className={`h-9 w-9 rounded-lg text-xs font-bold transition-all duration-200 ${
-                      !day
-                        ? 'bg-transparent border-transparent'
-                        : isFuture
-                        ? 'text-muted-foreground/20 cursor-not-allowed'
-                        : isMarked
-                        ? 'bg-gradient-to-br from-[#475569] via-[#334155] to-[#0F172A] text-white shadow-[0_0_15px_rgba(51,65,85,0.4)] border border-slate-600/50'
-                        : isToday
-                        ? 'border-2 border-primary shadow-[0_0_10px_rgba(var(--primary),0.2)] bg-muted/50 text-foreground'
-                        : 'border border-border/40 text-muted-foreground/60 hover:bg-muted/30 hover:text-foreground'
-                    }`}
-                  >
-                    {day}
-                  </button>
-                )
-              })
-            )}
+            </div>
           </div>
         </div>
       </DialogContent>

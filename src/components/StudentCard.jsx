@@ -22,6 +22,9 @@ export default function StudentCard({ student, onCalendar, onDelete, onEdit }) {
         <div className="space-y-1">
           <div className="flex items-center gap-2">
             <h3 className="text-sm font-bold text-foreground tracking-tight">{student.name}</h3>
+            <div className={`px-1.5 py-0.5 rounded-md border text-[8px] font-black uppercase tracking-widest ${metrics.balance >= 0 ? 'bg-emerald-500/5 border-emerald-500/20 text-emerald-500' : 'bg-rose-500/5 border-rose-500/20 text-rose-500'}`}>
+              {metrics.balance >= 0 ? '+' : ''}฿{formatNum(metrics.balance)}
+            </div>
             <div className="flex items-center gap-1.5 px-1.5 py-0.5 rounded-full bg-muted/20 border border-border/50">
               <div className={`h-1 w-1 rounded-full ${status.dot} ${student.status === 'active' ? 'animate-pulse' : ''}`} />
               <span className="text-[8px] font-bold text-muted-foreground uppercase tracking-widest">{status.label}</span>
@@ -82,16 +85,16 @@ export default function StudentCard({ student, onCalendar, onDelete, onEdit }) {
       <div className="absolute inset-x-0 bottom-0 translate-y-full group-hover:translate-y-0 transition-transform duration-300 bg-card/95 backdrop-blur-md border-t border-border/40 p-3 shadow-2xl z-10">
         <div className="grid grid-cols-2 gap-4">
           <div>
-            <div className="text-[7px] uppercase tracking-widest text-muted-foreground/50 font-bold">Frequency</div>
-            <div className="text-[10px] font-bold text-foreground/70">{metrics.hasData ? `${Math.round(metrics.avgDays)} days` : '—'}</div>
+            <div className="text-[7px] uppercase tracking-widest text-muted-foreground/50 font-bold">Total Paid</div>
+            <div className="text-[10px] font-black text-emerald-500">฿{formatNum(metrics.totalPaid)}</div>
+          </div>
+          <div>
+            <div className="text-[7px] uppercase tracking-widest text-muted-foreground/50 font-bold">Lessons Cost</div>
+            <div className="text-[10px] font-black text-rose-500">฿{formatNum(metrics.totalCost)}</div>
           </div>
           <div>
             <div className="text-[7px] uppercase tracking-widest text-muted-foreground/50 font-bold">Attendance</div>
-            <div className="text-[10px] font-bold text-foreground/70">{metrics.hasData ? `${metrics.lessonsPerMonth.toFixed(1)} /mo` : '—'}</div>
-          </div>
-          <div>
-            <div className="text-[7px] uppercase tracking-widest text-muted-foreground/50 font-bold">Lessons</div>
-            <div className="text-[10px] font-bold text-foreground/70">{(student.attendanceDates || []).length} total</div>
+            <div className="text-[10px] font-bold text-foreground/70">{(student.attendanceDates || []).length} lessons</div>
           </div>
           <div>
             <div className="text-[7px] uppercase tracking-widest text-muted-foreground/50 font-bold">Status</div>
