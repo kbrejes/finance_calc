@@ -62,12 +62,12 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     if (draft) {
       setNameInput(draft.name)
       setCostInput(draft.cost)
-      setAccountInput(draft.account || item.account || 'none')
+      setAccountInput(draft.account || 'none')
     } else {
       setNameInput('')
       const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
       setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
-      setAccountInput(item.account || 'none')
+      setAccountInput('none')
     }
   }
 
@@ -110,7 +110,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     setEditingId(entry.id)
     setNameInput(entry.name || '')
     setCostInput((entry.cost || 0).toString())
-    setAccountInput(entry.account || item.account || 'none')
+    setAccountInput(entry.account || 'none')
     setIsFormOpen(true)
   }
 
@@ -263,7 +263,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                           <span className="text-[10px] font-medium text-white/50">฿{(entry.cost || 0).toLocaleString()}</span>
                           <span className="text-[8px] font-black text-primary/60 uppercase">
                             {(() => {
-                              const accId = entry.account || item.account || 'none'
+                              const accId = entry.account || 'none'
                               const acc = (accounts || []).find(a => a.id === accId || a.name === accId)
                               return acc ? acc.name : (accId === 'none' ? 'Manual' : accId)
                             })()}
@@ -294,7 +294,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                   setNameInput('')
                   const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
                   setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
-                  setAccountInput(item.account || 'none')
+                  setAccountInput('none')
                   setIsFormOpen(true)
                 }}
                 className="w-full py-3 rounded-xl border border-dashed border-border/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all group"

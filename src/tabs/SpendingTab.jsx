@@ -46,7 +46,6 @@ export default function SpendingTab() {
         className: formData.className.trim(),
         instanceName: formData.className.trim(),
         isEssential: formData.essential === 'true',
-        account: formData.account,
       }
       const result = await api.updateSpending(editingItem.id, updatedItem)
       if (result) {
@@ -59,7 +58,6 @@ export default function SpendingTab() {
         className: formData.className.trim(),
         instanceName: formData.className.trim(),
         isEssential: formData.essential === 'true',
-        account: formData.account,
         pricePerUnit: 0,
         units: 1,
         purchaseDates: [],
@@ -91,23 +89,21 @@ export default function SpendingTab() {
   const handleUpdatePurchaseDates = async (dates) => {
     if (!selectedSpendingItem) return
     
-    // Deduction logic
     const oldDates = selectedSpendingItem.purchaseDates || []
-    const accountName = selectedSpendingItem.account || 'none'
     
     const oldTotalByAcc = {}
     const newTotalByAcc = {}
     
-    // Track totals per account ID or Name
+    // Track totals per explicitly assigned account on each entry
     oldDates.forEach(d => {
-      const accId = d.account || accountName
+      const accId = d.account
       if (accId && accId !== 'none') {
         oldTotalByAcc[accId] = (oldTotalByAcc[accId] || 0) + (d.cost || 0)
       }
     })
     
     dates.forEach(d => {
-      const accId = d.account || accountName
+      const accId = d.account
       if (accId && accId !== 'none') {
         newTotalByAcc[accId] = (newTotalByAcc[accId] || 0) + (d.cost || 0)
       }
