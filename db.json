@@ -503,6 +503,11 @@
         "name": "USDT Bybit",
         "value": 189.5,
         "currency": "USDT"
+      },
+      {
+        "name": " THB Cash (Exchange 24)",
+        "value": 0,
+        "currency": "THB"
       }
     ],
     "vitals": [
