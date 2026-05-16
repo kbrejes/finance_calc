@@ -97,38 +97,64 @@ export default function CalendarModal({
   const renderCalendar = () => {
     const year = currentDate.getFullYear()
     const month = currentDate.getMonth()
-    const days = []
+    const daysList = []
     const totalDays = daysInMonth(year, month)
     const offset = firstDayOfMonth(year, month)
 
-    for (let i = 0; i < offset; i++) days.push(<div key={`empty-${i}`} />)
+    for (let i = 0; i < offset; i++) daysList.push(null)
+    for (let d = 1; d <= totalDays; d++) daysList.push(d)
 
-    for (let d = 1; d <= totalDays; d++) {
-      const dateStr = formatDate(year, month, d)
-      const isAttended = attendanceDates.includes(dateStr)
-      const paymentAmount = paymentMap[dateStr]
-
-      days.push(
-        <button
-          key={d}
-          onClick={() => handleDayClick(d)}
-          className={`
-            aspect-square rounded-xl flex flex-col items-center justify-center relative transition-all border
-            ${isAttended ? 'bg-primary/20 border-primary/40 shadow-[0_0_15px_rgba(129,140,248,0.1)]' : 'bg-muted/10 border-border hover:border-white/20'}
-          `}
-        >
-          <span className={`text-[10px] font-black ${isAttended ? 'text-primary' : 'text-white/80'}`}>{d}</span>
-          {isAttended && <Check className="h-2 w-2 text-primary mt-0.5" />}
-          {paymentAmount > 0 && (
-            <div className="absolute top-1 right-1 flex items-center gap-0.5 px-1.5 py-0.5 rounded-md bg-emerald-500 text-white scale-[0.7] origin-top-right shadow-sm border border-emerald-400">
-              <DollarSign className="h-2 w-2" />
-              <span className="text-[8px] font-black">฿{formatNum(paymentAmount)}</span>
-            </div>
-          )}
-        </button>
-      )
+    const rows = []
+    for (let i = 0; i < daysList.length; i += 7) {
+      rows.push(daysList.slice(i, i + 7))
     }
-    return days
+
+    return rows.map((week, weekIdx) =>
+      week.map((day, dayIdx) => {
+        const dateStr = day ? formatDate(year, month, day) : ''
+        const isAttended = day ? attendanceDates.includes(dateStr) : false
+        const paymentAmount = day ? paymentMap[dateStr] : 0
+        const isCurrentlySelected = false // Could implement day selection later if needed
+        
+        const today = new Date()
+        today.setHours(0, 0, 0, 0)
+        const checkDate = new Date(year, month, day)
+        checkDate.setHours(0, 0, 0, 0)
+        const isFuture = day && checkDate > today
+        const isToday = day && checkDate.getTime() === today.getTime()
+
+        return (
+          <button
+            key={`${weekIdx}-${dayIdx}`}
+            onClick={() => day && !isFuture && handleDayClick(day)}
+            disabled={!day || isFuture}
+            className={`relative h-10 w-10 mx-auto rounded-lg flex flex-col items-center justify-center transition-all duration-200 ${
+              !day
+                ? 'bg-transparent border-transparent'
+                : isFuture
+                ? 'text-muted-foreground/20 cursor-not-allowed'
+                : isAttended
+                ? 'bg-gradient-to-br from-[#475569] via-[#334155] to-[#0F172A] text-white shadow-sm border border-slate-600/50'
+                : isCurrentlySelected
+                ? 'border-2 border-primary bg-primary/10 text-foreground'
+                : isToday
+                ? 'border-2 border-primary shadow-[0_0_10px_rgba(var(--primary),0.2)] bg-muted/50 text-foreground'
+                : 'border border-border/40 text-muted-foreground/60 hover:bg-muted/30 hover:text-foreground'
+            }`}
+          >
+            {day && (
+              <span className={isAttended ? 'text-[10px] font-bold leading-none' : 'text-xs font-bold'}>{day}</span>
+            )}
+            {isAttended && <Check className="h-2 w-2 text-white mt-0.5 opacity-80" />}
+            {paymentAmount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-emerald-500 text-[8px] font-black text-white shadow-sm">
+                $
+              </span>
+            )}
+          </button>
+        )
+      })
+    )
   }
 
   const statItems = [
