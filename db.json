@@ -228,6 +228,13 @@
           "date": "2026-05-15",
           "name": "Cashew 800g",
           "cost": 179
+        },
+        {
+          "id": 1778898063009,
+          "date": "2026-05-16",
+          "name": "deez",
+          "cost": 500,
+          "account": "THB Cash (Exchange 24) 3"
         }
       ]
     },
