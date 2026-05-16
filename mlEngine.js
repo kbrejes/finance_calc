@@ -62,14 +62,12 @@ export async function generateSpendingPredictions(spendingData) {
     amountModel.train(X, y_amount);
 
     // Predict the FUTURE!
-    // What will happen after the very LAST known purchase?
     const lastPurchase = sorted[sorted.length - 1];
     const currentFeatures = [extractFeatures(lastPurchase.date, lastPurchase.cost)];
     
     const predictedDaysUntilNext = daysModel.predict(currentFeatures)[0];
     const predictedNextAmount = amountModel.predict(currentFeatures)[0];
 
-    // Calculate exact future calendar date
     const nextDate = new Date(lastPurchase.date);
     nextDate.setDate(nextDate.getDate() + Math.round(predictedDaysUntilNext));
 
@@ -79,7 +77,73 @@ export async function generateSpendingPredictions(spendingData) {
       predictedNextDate: nextDate.toISOString().split('T')[0],
       predictedDaysUntilNext: Math.round(predictedDaysUntilNext),
       predictedNextAmount: Math.round(predictedNextAmount),
-      confidenceScore: 'Moderate' // Random Forests on tiny data usually have high variance
+      confidenceScore: 'Moderate'
+    };
+  });
+
+  return predictions;
+}
+
+export async function generateIncomePredictions(studentsData) {
+  const predictions = {};
+
+  studentsData.forEach(student => {
+    // We need at least 3 payments to establish a reliable temporal pattern
+    if (!student.payments || student.payments.length < 3) {
+      return; 
+    }
+
+    // Sort chronologically
+    const sorted = [...student.payments].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+    const X = []; // Features Matrix
+    const y_days = []; // Target 1: Days until next payment
+    const y_amount = []; // Target 2: Amount of next payment
+
+    // Build training data by pairing adjacent payments (A -> B)
+    for (let i = 0; i < sorted.length - 1; i++) {
+      const A = sorted[i];
+      const B = sorted[i + 1];
+
+      // Features known at time A
+      X.push(extractFeatures(A.date, A.amount));
+      
+      // What actually happened at time B
+      y_days.push(daysBetween(A.date, B.date));
+      y_amount.push(B.amount || 0);
+    }
+
+    // Train the models
+    const options = {
+      seed: 42,
+      replacement: true,
+      nEstimators: 50,
+      noOOB: true
+    };
+
+    const daysModel = new RandomForestRegression(options);
+    daysModel.train(X, y_days);
+
+    const amountModel = new RandomForestRegression(options);
+    amountModel.train(X, y_amount);
+
+    // Predict the FUTURE!
+    const lastPayment = sorted[sorted.length - 1];
+    const currentFeatures = [extractFeatures(lastPayment.date, lastPayment.amount)];
+    
+    const predictedDaysUntilNext = daysModel.predict(currentFeatures)[0];
+    const predictedNextAmount = amountModel.predict(currentFeatures)[0];
+
+    const nextDate = new Date(lastPayment.date);
+    nextDate.setDate(nextDate.getDate() + Math.round(predictedDaysUntilNext));
+
+    // Save prediction for this student
+    predictions[student.id] = {
+      name: student.name,
+      predictedNextDate: nextDate.toISOString().split('T')[0],
+      predictedDaysUntilNext: Math.round(predictedDaysUntilNext),
+      predictedNextAmount: Math.round(predictedNextAmount),
+      confidenceScore: 'Moderate'
     };
   });
 

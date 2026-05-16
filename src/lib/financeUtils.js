@@ -137,7 +137,7 @@ export function getCalculatedStudentMetrics(student) {
   };
 }
 
-export function calculateDashboardStats({ students, spending, assets, currentMonth, currentYear, daysInMonth, mlPredictions }) {
+export function calculateDashboardStats({ students, spending, assets, currentMonth, currentYear, daysInMonth, mlPredictions, mlIncomePredictions }) {
   const dailyIncome = new Array(daysInMonth).fill(0);
   const dailySpending = new Array(daysInMonth).fill(0);
   const dailyItems = new Array(daysInMonth).fill(null).map(() => ({ earnings: [], spendings: [] }));
@@ -165,53 +165,148 @@ export function calculateDashboardStats({ students, spending, assets, currentMon
     });
   });
 
-  const cumulativeIncome = [];
-  const cumulativeSpending = [];
-  let incSum = 0;
-  let spendSum = 0;
-
-  for (let i = 0; i < daysInMonth; i++) {
-    incSum += dailyIncome[i];
-    spendSum += dailySpending[i];
-    cumulativeIncome.push(incSum);
-    cumulativeSpending.push(spendSum);
-  }
-
-  // --- ML PREDICTION LOGIC ---
+  // --- ML PREDICTION LOGIC & CHART TIMELINE ---
   const today = new Date();
   today.setHours(0,0,0,0);
   const isCurrentMonth = today.getMonth() === currentMonth && today.getFullYear() === currentYear;
-  
-  let projectedSpending = null;
-  let futureLabels = [];
+
+  const FORECAST_DAYS = 365;
+  const timelineLength = isCurrentMonth ? (today.getDate() + FORECAST_DAYS) : daysInMonth;
+  const labels = [];
+  const chartCumulativeIncome = [];
+  const chartCumulativeSpending = [];
+  const chartProjectedSpending = [];
+  const chartProjectedIncome = [];
+  const chartDailyItems = [];
+
+  // Calculate liquid capital FIRST so we can use it as the income baseline
+  const totalLiquidCapital = (assets?.financial || []).reduce((sum, acc) => {
+    const multiplier = EXCHANGE_RATES[acc.currency] || 1;
+    return sum + ((acc.value || 0) * multiplier);
+  }, 0);
+
+  // We want the green line's value on "Today" to exactly equal totalLiquidCapital.
+  // Since we add dailyIncome as we loop from day 1 to today, we need to start at
+  // totalLiquidCapital minus the income we've already earned this month.
+  let earningsSoFarThisMonth = 0;
+  if (isCurrentMonth) {
+    for (let i = 0; i < today.getDate() && i < daysInMonth; i++) {
+      earningsSoFarThisMonth += dailyIncome[i];
+    }
+  }
+
+  let incSum = isCurrentMonth ? (totalLiquidCapital - earningsSoFarThisMonth) : totalLiquidCapital; 
+  let spendSum = 0;
+
+  for (let i = 0; i < timelineLength; i++) {
+    const loopDate = new Date(currentYear, currentMonth, i + 1);
+    
+    // Formatting label
+    if (i < daysInMonth) {
+      labels.push(String(i + 1));
+    } else {
+      // For future dates, only show label on the 1st of each month to avoid overcrowding
+      if (loopDate.getDate() === 1) {
+        labels.push(`${loopDate.toLocaleString('default', { month: 'short' })} '${String(loopDate.getFullYear()).slice(2)}`);
+      } else {
+        labels.push('');
+      }
+    }
+
+    const dayItems = { earnings: [], spendings: [], projected: [] };
+
+    if (i < daysInMonth) {
+      dayItems.earnings = dailyItems[i].earnings;
+      dayItems.spendings = dailyItems[i].spendings;
+    }
+
+    // Actual Data
+    if (!isCurrentMonth || i < today.getDate()) {
+      if (i < daysInMonth) {
+        incSum += dailyIncome[i];
+        spendSum += dailySpending[i];
+      }
+      chartCumulativeIncome.push(incSum);
+      chartCumulativeSpending.push(spendSum);
+      chartProjectedSpending.push(i === today.getDate() - 1 ? spendSum : null);
+      chartProjectedIncome.push(i === today.getDate() - 1 ? incSum : null);
+    } else {
+      chartCumulativeIncome.push(null);
+      chartCumulativeSpending.push(null);
+      chartProjectedSpending.push(0);
+      chartProjectedIncome.push(0);
+    }
+    
+    chartDailyItems.push(dayItems);
+  }
 
   if (isCurrentMonth && mlPredictions) {
-    const daysRemaining = daysInMonth - today.getDate();
-    const daysToForecast = daysRemaining + 30; // Finish the month + 30 days
-    
-    const dailyForecast = new Array(daysToForecast + 1).fill(0);
-    
     Object.values(mlPredictions).forEach(pred => {
-      const predDate = new Date(pred.predictedNextDate);
-      predDate.setHours(0,0,0,0);
-      const diffDays = Math.round((predDate - today) / (1000 * 60 * 60 * 24));
+      const interval = pred.predictedDaysUntilNext;
+      const firstDate = new Date(pred.predictedNextDate);
+      firstDate.setHours(0,0,0,0);
       
-      if (diffDays > 0 && diffDays <= daysToForecast) {
-         dailyForecast[diffDays] += pred.predictedNextAmount;
+      // Place recurring dots: first occurrence, then repeat at the interval
+      let predDate = new Date(firstDate);
+      while (true) {
+        const diffDays = Math.round((predDate - today) / (1000 * 60 * 60 * 24));
+        if (diffDays > FORECAST_DAYS) break;
+        if (diffDays >= 1) {
+          const targetIndex = (today.getDate() - 1) + diffDays;
+          if (targetIndex < timelineLength) {
+            chartDailyItems[targetIndex].projected.push({
+              name: pred.className,
+              amount: pred.predictedNextAmount
+            });
+          }
+        }
+        predDate = new Date(predDate);
+        predDate.setDate(predDate.getDate() + Math.max(1, interval));
       }
     });
-    
-    let currentProjSpendSum = cumulativeSpending[today.getDate() - 1] || 0;
-    projectedSpending = new Array(today.getDate() - 1).fill(null);
-    projectedSpending.push(currentProjSpendSum); 
-    
-    for (let i = 1; i <= daysToForecast; i++) {
-      currentProjSpendSum += dailyForecast[i];
-      projectedSpending.push(currentProjSpendSum);
+
+    let currentProjSpendSum = chartCumulativeSpending[today.getDate() - 1];
+    for (let i = today.getDate(); i < timelineLength; i++) {
+      const dailyProjSpend = chartDailyItems[i].projected.reduce((sum, item) => sum + item.amount, 0);
+      currentProjSpendSum += dailyProjSpend;
+      chartProjectedSpending[i] = currentProjSpendSum;
+    }
+  }
+
+  // --- ML INCOME PREDICTIONS ---
+  if (isCurrentMonth && mlIncomePredictions) {
+    Object.values(mlIncomePredictions).forEach(pred => {
+      const interval = pred.predictedDaysUntilNext;
+      const firstDate = new Date(pred.predictedNextDate);
+      firstDate.setHours(0,0,0,0);
       
-      const futureDate = new Date(today);
-      futureDate.setDate(today.getDate() + i);
-      futureLabels.push(`${futureDate.toLocaleString('default', { month: 'short' })} ${futureDate.getDate()}`);
+      // Place recurring dots: first occurrence, then repeat at the interval
+      let predDate = new Date(firstDate);
+      while (true) {
+        const diffDays = Math.round((predDate - today) / (1000 * 60 * 60 * 24));
+        if (diffDays > FORECAST_DAYS) break;
+        if (diffDays >= 1) {
+          const targetIndex = (today.getDate() - 1) + diffDays;
+          if (targetIndex < timelineLength) {
+            if (!chartDailyItems[targetIndex].projectedIncome) {
+              chartDailyItems[targetIndex].projectedIncome = [];
+            }
+            chartDailyItems[targetIndex].projectedIncome.push({
+              name: pred.name,
+              amount: pred.predictedNextAmount
+            });
+          }
+        }
+        predDate = new Date(predDate);
+        predDate.setDate(predDate.getDate() + Math.max(1, interval));
+      }
+    });
+
+    let currentProjIncSum = chartCumulativeIncome[today.getDate() - 1];
+    for (let i = today.getDate(); i < timelineLength; i++) {
+      const dailyProjInc = (chartDailyItems[i].projectedIncome || []).reduce((sum, item) => sum + item.amount, 0);
+      currentProjIncSum += dailyProjInc;
+      chartProjectedIncome[i] = currentProjIncSum;
     }
   }
 
@@ -225,16 +320,15 @@ export function calculateDashboardStats({ students, spending, assets, currentMon
     return dAcc + (d.cost || 0);
   }, 0), 0);
 
-  const totalLiquidCapital = (assets?.financial || []).reduce((sum, acc) => {
-    const multiplier = EXCHANGE_RATES[acc.currency] || 1;
-    return sum + ((acc.value || 0) * multiplier);
-  }, 0);
+
 
   return { 
-    cumulativeIncome, 
-    cumulativeSpending, 
-    projectedSpending,
-    futureLabels,
+    labels,
+    chartCumulativeIncome, 
+    chartCumulativeSpending, 
+    chartProjectedSpending,
+    chartProjectedIncome,
+    chartDailyItems,
     isCurrentMonth,
     dailyIncome, 
     dailySpending,

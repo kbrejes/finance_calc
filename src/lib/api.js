@@ -164,3 +164,14 @@ export async function fetchMLSpendingPredictions() {
     return {}
   }
 }
+
+export async function fetchMLIncomePredictions() {
+  try {
+    const res = await fetch(`${API_BASE}/ml/predict-income`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  } catch (error) {
+    console.error('Failed to fetch ML income predictions:', error)
+    return {}
+  }
+}

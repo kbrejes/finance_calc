@@ -44,6 +44,7 @@ export default function DashboardTab() {
   const [students, setStudents] = useState([])
   const [assets, setAssets] = useState({ financial: [] })
   const [mlPredictions, setMlPredictions] = useState(null)
+  const [mlIncomePredictions, setMlIncomePredictions] = useState(null)
   const [currentDate, setCurrentDate] = useState(new Date())
   const [isZoomed, setIsZoomed] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -51,16 +52,18 @@ export default function DashboardTab() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [studentData, spendingData, assetData, mlData] = await Promise.all([
+        const [studentData, spendingData, assetData, mlData, mlIncData] = await Promise.all([
           api.fetchStudents(),
           api.fetchSpending(),
           api.fetchAssets(),
-          api.fetchMLSpendingPredictions()
+          api.fetchMLSpendingPredictions(),
+          api.fetchMLIncomePredictions()
         ])
         setStudents(studentData || [])
         setSpending(spendingData || [])
         if (assetData) setAssets(assetData)
         if (mlData) setMlPredictions(mlData)
+        if (mlIncData) setMlIncomePredictions(mlIncData)
       } catch (e) {
         console.error("Error loading dashboard data", e)
       } finally {
@@ -86,31 +89,30 @@ export default function DashboardTab() {
       currentMonth,
       currentYear,
       daysInMonth,
-      mlPredictions
+      mlPredictions,
+      mlIncomePredictions
     })
-  }, [students, spending, assets, currentMonth, currentYear, daysInMonth, mlPredictions])
+  }, [students, spending, assets, currentMonth, currentYear, daysInMonth, mlPredictions, mlIncomePredictions])
 
   const chartData = {
-    labels: stats.isCurrentMonth && stats.futureLabels?.length > 0
-      ? [...daysArray.map(d => `${d}`), ...stats.futureLabels]
-      : daysArray.map(d => `${d}`),
+    labels: stats.labels,
     datasets: [
       {
         label: 'Income',
-        data: stats.cumulativeIncome,
-        borderColor: '#34D399', // Brighter Emerald (emerald-400)
+        data: stats.chartCumulativeIncome,
+        borderColor: '#34D399', // Brighter Emerald
         backgroundColor: 'rgba(52, 211, 153, 0.1)',
-        borderWidth: 3, // Thicker
+        borderWidth: 3,
         tension: 0.4,
         pointRadius: 0,
         fill: true,
       },
       {
         label: 'Spending',
-        data: stats.cumulativeSpending,
-        borderColor: '#FB7185', // Brighter Rose (rose-400)
+        data: stats.chartCumulativeSpending,
+        borderColor: '#FB7185', // Brighter Rose
         backgroundColor: 'rgba(251, 113, 133, 0.1)',
-        borderWidth: 3, // Thicker
+        borderWidth: 3,
         tension: 0.4,
         pointRadius: 0,
         fill: true,
@@ -118,17 +120,67 @@ export default function DashboardTab() {
     ],
   }
 
-  if (stats.isCurrentMonth && stats.projectedSpending) {
+  if (stats.isCurrentMonth) {
+    // Projected Spending Line
+    if (stats.chartProjectedSpending) {
+      chartData.datasets.push({
+        label: 'Projected Spend (ML)',
+        data: stats.chartProjectedSpending,
+        borderColor: 'rgba(251, 113, 133, 0.4)', // Faded Rose
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        borderDash: [5, 5],
+        tension: 0.4,
+        pointRadius: (ctx) => {
+          const dayData = stats.chartDailyItems[ctx.dataIndex];
+          return dayData && dayData.projected && dayData.projected.length > 0 ? 5 : 0;
+        },
+        pointHoverRadius: (ctx) => {
+          const dayData = stats.chartDailyItems[ctx.dataIndex];
+          return dayData && dayData.projected && dayData.projected.length > 0 ? 8 : 0;
+        },
+        pointBackgroundColor: '#FB7185',
+        pointBorderColor: '#0A0A0A',
+        pointBorderWidth: 2,
+        fill: false,
+      });
+    }
+
+    // Projected Income Line
+    if (stats.chartProjectedIncome) {
+      chartData.datasets.push({
+        label: 'Projected Income (ML)',
+        data: stats.chartProjectedIncome,
+        borderColor: 'rgba(52, 211, 153, 0.4)', // Faded Emerald
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        borderDash: [5, 5],
+        tension: 0.4,
+        pointRadius: (ctx) => {
+          const dayData = stats.chartDailyItems[ctx.dataIndex];
+          return dayData && dayData.projectedIncome && dayData.projectedIncome.length > 0 ? 5 : 0;
+        },
+        pointHoverRadius: (ctx) => {
+          const dayData = stats.chartDailyItems[ctx.dataIndex];
+          return dayData && dayData.projectedIncome && dayData.projectedIncome.length > 0 ? 8 : 0;
+        },
+        pointBackgroundColor: '#34D399',
+        pointBorderColor: '#0A0A0A',
+        pointBorderWidth: 2,
+        fill: false,
+      });
+    }
+
+    // Today Indicator Point
+    const todayIndex = currentDate.getDate() - 1;
     chartData.datasets.push({
-      label: 'Projected Spend (ML)',
-      data: stats.projectedSpending,
-      borderColor: 'rgba(251, 113, 133, 0.4)', // Faded Rose
-      backgroundColor: 'transparent',
-      borderWidth: 2,
-      borderDash: [5, 5],
-      tension: 0.4,
-      pointRadius: 0,
-      fill: false,
+      label: 'Today',
+      data: stats.labels.map((_, i) => i === todayIndex ? stats.chartCumulativeSpending[i] : null),
+      borderColor: '#38bdf8',
+      backgroundColor: '#38bdf8',
+      pointRadius: 6,
+      pointHoverRadius: 8,
+      showLine: false,
     });
   }
 
@@ -150,13 +202,40 @@ export default function DashboardTab() {
         borderColor: '#262626',
         borderWidth: 1,
         callbacks: {
-          label: (context) => `${context.dataset.label}: ฿${context.parsed.y.toLocaleString()}`
+          label: (context) => {
+            const datasetLabel = context.dataset.label;
+            const yVal = context.parsed.y;
+            if (datasetLabel === 'Today') return null; // Skip drawing 'Today' in tooltip
+            
+            let result = [`${datasetLabel}: ฿${formatNum(yVal)}`];
+            
+            // If we are hovering over the ML line, show the specific projected items for that day
+            if (datasetLabel === 'Projected Spend (ML)') {
+              const index = context.dataIndex;
+              const dayData = stats.chartDailyItems[index];
+              if (dayData && dayData.projected && dayData.projected.length > 0) {
+                dayData.projected.forEach(p => {
+                  result.push(`  → ${p.name}: +฿${formatNum(p.amount)}`);
+                });
+              }
+            }
+            if (datasetLabel === 'Projected Income (ML)') {
+              const index = context.dataIndex;
+              const dayData = stats.chartDailyItems[index];
+              if (dayData && dayData.projectedIncome && dayData.projectedIncome.length > 0) {
+                dayData.projectedIncome.forEach(p => {
+                  result.push(`  → ${p.name}: +฿${formatNum(p.amount)}`);
+                });
+              }
+            }
+            return result;
+          }
         }
       }
     },
     scales: {
       y: { beginAtZero: true, grid: { color: '#1A1A1A' }, ticks: { color: '#737373', font: { size: 10 } } },
-      x: { grid: { display: false }, ticks: { color: '#737373', font: { size: 10 } } }
+      x: { grid: { display: false }, ticks: { color: '#737373', font: { size: 10 }, maxRotation: 0, autoSkip: true, maxTicksLimit: 20 } }
     }
   }
 
