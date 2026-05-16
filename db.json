@@ -1,0 +1,581 @@
+{
+  "spending": [
+    {
+      "id": 1,
+      "className": "Rent",
+      "category": "Housing",
+      "isEssential": true,
+      "instanceName": "Rent",
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "date": "2026-05-02",
+          "cost": 8200
+        },
+        {
+          "date": "2026-04-02",
+          "cost": 8000
+        },
+        {
+          "date": "2026-03-02",
+          "cost": 8000
+        },
+        {
+          "date": "2026-02-02",
+          "cost": 8000
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "className": "Yoghurt",
+      "category": "Food",
+      "isEssential": true,
+      "instanceName": "Yoghurt",
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "id": 1778837171947,
+          "date": "2026-05-13",
+          "name": "Plain yoghurt, Aro 2kg",
+          "cost": 135
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "className": "Gas",
+      "category": "Transport",
+      "isEssential": true,
+      "instanceName": "Gas",
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "date": "2026-05-13",
+          "cost": 50
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "className": "Phone Plan",
+      "category": "Personal",
+      "isEssential": true,
+      "instanceName": "Phone Plan",
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "date": "2026-05-02",
+          "cost": 550
+        },
+        {
+          "id": 1778838165864,
+          "date": "2026-03-02",
+          "name": "Dtac",
+          "cost": 550
+        },
+        {
+          "id": 1778838141397,
+          "date": "2026-04-02",
+          "name": "Dtac",
+          "cost": 551
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "className": "30x eggs",
+      "category": "Food",
+      "isEssential": true,
+      "instanceName": "30x eggs",
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": []
+    },
+    {
+      "id": 7,
+      "className": "Fruit",
+      "category": "Food",
+      "isEssential": true,
+      "instanceName": "Fruit",
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "id": 1778857616813,
+          "date": "2026-05-15",
+          "name": "Raisins 1kg",
+          "cost": 170
+        }
+      ]
+    },
+    {
+      "id": 8,
+      "className": "Carbs (rice, beans, pasta, buckwheat)",
+      "category": "Food",
+      "isEssential": true,
+      "instanceName": "Carbs (rice, beans, pasta, buckwheat)",
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "id": 1778837076974,
+          "date": "2026-05-13",
+          "name": "Mung beans 6 x 500g (3 kg), Aro",
+          "cost": 210
+        },
+        {
+          "id": 1778837127613,
+          "date": "2026-05-13",
+          "name": "Riceberry rice 2kg",
+          "cost": 150
+        }
+      ]
+    },
+    {
+      "id": 9,
+      "className": "Water",
+      "category": "Food",
+      "isEssential": true,
+      "instanceName": "Water",
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "id": 1778837022279,
+          "date": "2026-05-13",
+          "name": "8 x 1500 ml, Aro (12 Litres)",
+          "cost": 55
+        }
+      ]
+    },
+    {
+      "id": 10,
+      "className": "Coffee",
+      "category": "Food",
+      "isEssential": true,
+      "instanceName": "Coffee",
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "id": 1778836854035,
+          "date": "2026-05-13",
+          "name": "Ground robusta / arabica mix, Aro 500g",
+          "cost": 225
+        }
+      ]
+    },
+    {
+      "id": 11,
+      "className": "Veggies",
+      "category": "Food",
+      "isEssential": true,
+      "instanceName": "Veggies",
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "date": "2026-05-13",
+          "cost": 541
+        },
+        {
+          "id": 1778857671712,
+          "date": "2026-05-15",
+          "name": "Carrot",
+          "cost": 17
+        }
+      ]
+    },
+    {
+      "id": 1778836777787,
+      "category": "Food",
+      "className": "Cheese",
+      "instanceName": "Cheese",
+      "isEssential": true,
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "id": 1778836805981,
+          "date": "2026-05-13",
+          "name": "Emmental Aro 500g",
+          "cost": 224
+        }
+      ]
+    },
+    {
+      "id": 1778837200964,
+      "category": "Food",
+      "className": "Nuts",
+      "instanceName": "Nuts",
+      "isEssential": true,
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "id": 1778837464819,
+          "date": "2026-05-13",
+          "name": "Peanuts 3kg, Aro (not yummy)",
+          "cost": 245
+        },
+        {
+          "id": 1778857654499,
+          "date": "2026-05-15",
+          "name": "Cashew 800g",
+          "cost": 179
+        },
+        {
+          "id": 1778898576615,
+          "date": "2026-05-16",
+          "name": "ppifs",
+          "cost": 6000,
+          "account": "acc_64jcmpw8x_1778898556849"
+        }
+      ]
+    },
+    {
+      "id": 1778837212429,
+      "category": "Other",
+      "className": "Occasional uncategorized essentials",
+      "instanceName": "Occasional uncategorized essentials",
+      "isEssential": true,
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "id": 1778837230174,
+          "date": "2026-05-13",
+          "name": "Food container",
+          "cost": 109
+        },
+        {
+          "id": 1778857718683,
+          "date": "2026-05-15",
+          "name": "Food Container",
+          "cost": 109
+        }
+      ]
+    },
+    {
+      "id": 1778837271857,
+      "category": "Food",
+      "className": "Fats (oil, butter etc)",
+      "instanceName": "Fats (oil, butter etc)",
+      "isEssential": true,
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "id": 1778837409088,
+          "date": "2026-05-13",
+          "name": "King oil, 1L",
+          "cost": 98
+        }
+      ]
+    },
+    {
+      "id": 1778857804691,
+      "category": "Food",
+      "className": "Protein (Chicken, fish, mushrooms, etc)",
+      "instanceName": "Protein (Chicken, fish, mushrooms, etc)",
+      "isEssential": true,
+      "pricePerUnit": 0,
+      "units": 1,
+      "purchaseDates": [
+        {
+          "id": 1778858089312,
+          "date": "2026-05-15",
+          "name": "Frozen Chicken Aro 2kg",
+          "cost": 181
+        }
+      ]
+    }
+  ],
+  "students": [
+    {
+      "id": 1,
+      "name": "Alex Belyaev",
+      "price": 700,
+      "attendanceDates": [
+        "2026-05-14",
+        "2026-04-01",
+        "2026-04-08",
+        "2026-04-13",
+        "2026-04-29",
+        "2026-05-08",
+        "2026-05-06"
+      ],
+      "status": "active",
+      "payments": [
+        {
+          "date": "2026-04-01",
+          "amount": 4200
+        },
+        {
+          "date": "2026-05-14",
+          "amount": 4200
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Kirill Maslow",
+      "price": 1300,
+      "attendanceDates": [
+        "2026-05-13",
+        "2026-05-12",
+        "2026-05-08",
+        "2026-05-07",
+        "2026-05-06",
+        "2026-05-05",
+        "2026-05-04",
+        "2026-05-01",
+        "2026-04-30",
+        "2026-04-29",
+        "2026-02-26",
+        "2026-02-25",
+        "2026-02-24",
+        "2026-02-23",
+        "2026-02-19",
+        "2026-02-17",
+        "2026-02-13",
+        "2026-02-11",
+        "2026-02-10",
+        "2026-02-09",
+        "2026-02-04",
+        "2025-10-17",
+        "2025-10-16",
+        "2025-10-15",
+        "2025-10-14",
+        "2025-10-13",
+        "2025-10-10",
+        "2025-10-09",
+        "2025-10-07",
+        "2025-10-06",
+        "2025-09-23",
+        "2025-09-22",
+        "2025-09-19",
+        "2025-09-18",
+        "2025-09-17",
+        "2025-09-16",
+        "2025-09-15",
+        "2026-05-14"
+      ],
+      "status": "active",
+      "payments": [
+        {
+          "date": "2025-09-15",
+          "amount": 15600
+        },
+        {
+          "date": "2026-02-03",
+          "amount": 15600
+        },
+        {
+          "date": "2026-04-26",
+          "amount": 15600
+        }
+      ],
+      "adjustments": [
+        {
+          "id": 1778853408217,
+          "date": "2026-05-15",
+          "amount": 3900,
+          "comment": "Manual adjustment"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Alex Averyanov",
+      "price": 650,
+      "attendanceDates": [
+        "2026-05-06",
+        "2026-05-01",
+        "2026-04-29",
+        "2026-04-28",
+        "2026-04-24",
+        "2026-04-22",
+        "2026-04-16",
+        "2026-04-14",
+        "2026-04-12"
+      ],
+      "payments": [
+        {
+          "date": "2026-04-12",
+          "amount": 3900
+        },
+        {
+          "date": "2026-04-29",
+          "amount": 3900
+        }
+      ],
+      "status": "active"
+    },
+    {
+      "id": 1778824879370,
+      "name": "Bela",
+      "price": 150,
+      "attendanceDates": [
+        "2026-04-02",
+        "2026-04-04",
+        "2026-04-06",
+        "2026-04-09",
+        "2026-04-11",
+        "2026-04-13",
+        "2026-04-16",
+        "2026-04-18",
+        "2026-04-20",
+        "2026-04-23",
+        "2026-04-25",
+        "2026-04-27",
+        "2026-05-02",
+        "2026-05-04",
+        "2026-05-07",
+        "2026-05-09",
+        "2026-05-11",
+        "2026-05-14"
+      ],
+      "status": "active",
+      "payments": [
+        {
+          "date": "2026-03-30",
+          "amount": 300
+        },
+        {
+          "date": "2026-04-04",
+          "amount": 300
+        },
+        {
+          "date": "2026-04-14",
+          "amount": 450
+        },
+        {
+          "date": "2026-04-20",
+          "amount": 300
+        },
+        {
+          "date": "2026-04-25",
+          "amount": 300
+        },
+        {
+          "date": "2026-05-02",
+          "amount": 300
+        },
+        {
+          "date": "2026-05-09",
+          "amount": 300
+        },
+        {
+          "date": "2026-05-12",
+          "amount": 300
+        }
+      ]
+    }
+  ],
+  "assets": {
+    "physical": [
+      {
+        "name": "Honda PCX 2017",
+        "min": 20000,
+        "max": 30000,
+        "value": "17000-30000"
+      },
+      {
+        "name": "Marshall Kilburn III",
+        "min": 8000,
+        "max": 10500,
+        "value": "8000-11000"
+      },
+      {
+        "name": "Pioneer FLX 4",
+        "min": 5000,
+        "max": 7500,
+        "value": "5000-8000"
+      },
+      {
+        "name": "Longboard",
+        "min": 1500,
+        "max": 3500,
+        "value": "1000-4000"
+      }
+    ],
+    "financial": [
+      {
+        "name": "USDT Bybit",
+        "value": 189.5,
+        "currency": "USDT",
+        "id": "acc_9v46082ka_1778898281360"
+      },
+      {
+        "id": "acc_64jcmpw8x_1778898556849",
+        "name": "THB Cash (Exchange 24)",
+        "value": 11106,
+        "currency": "THB"
+      }
+    ],
+    "vitals": [
+      {
+        "name": "Passport (RU)",
+        "exp": "2030-01-01"
+      },
+      {
+        "name": "Driver License (RU)",
+        "exp": "2028-05-15"
+      },
+      {
+        "name": "DTV Visa",
+        "exp": "2030-03-05",
+        "cost": 2000,
+        "borderRun": "2026-09-01"
+      }
+    ],
+    "digital": [
+      {
+        "name": "YouTube",
+        "sub": 0,
+        "posts": 1,
+        "icon": {
+          "displayName": "Youtube"
+        }
+      },
+      {
+        "name": "Telegram",
+        "sub": 0,
+        "posts": 0,
+        "icon": {
+          "displayName": "Send"
+        }
+      },
+      {
+        "name": "Instagram",
+        "sub": 0,
+        "posts": 5,
+        "icon": {
+          "displayName": "Instagram"
+        }
+      },
+      {
+        "name": "Email List",
+        "sub": 0,
+        "posts": 0,
+        "icon": {
+          "displayName": "Mail"
+        }
+      },
+      {
+        "name": "EWK Website",
+        "sub": 1,
+        "posts": 0,
+        "icon": {
+          "displayName": "Globe"
+        }
+      }
+    ]
+  }
+}
