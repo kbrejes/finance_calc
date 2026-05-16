@@ -3,6 +3,7 @@ import fs from 'fs'
 import path from 'path'
 import { fileURLToPath } from 'url'
 import { dirname } from 'path'
+import { generateSpendingPredictions } from './mlEngine.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = dirname(__filename)
@@ -184,6 +185,19 @@ app.post('/api/assets', (req, res) => {
   db.assets = req.body;
   writeDB(db);
   res.json(db.assets);
+});
+
+// ---------- ML ENDPOINTS ----------
+
+app.get('/api/ml/predict-spending', async (req, res) => {
+  try {
+    const db = readDB();
+    const predictions = await generateSpendingPredictions(db.spending);
+    res.json(predictions);
+  } catch (error) {
+    console.error('ML Error:', error);
+    res.status(500).json({ error: 'Failed to generate ML predictions' });
+  }
 });
 
 // ---------- Start ----------

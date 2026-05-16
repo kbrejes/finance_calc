@@ -20,6 +20,7 @@
     "clsx": "^2.0.0",
     "express": "^5.2.1",
     "lucide-react": "^0.263.1",
+    "ml-random-forest": "^2.1.0",
     "react": "^18.2.0",
     "react-chartjs-2": "^5.3.1",
     "react-dom": "^18.2.0",
