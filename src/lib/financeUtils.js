@@ -134,6 +134,9 @@ export function getCalculatedStudentMetrics(student) {
     totalPaid,
     totalAdjustments,
     balance
+  };
+}
+
 export function calculateDashboardStats({ students, spending, assets, currentMonth, currentYear, daysInMonth }) {
   const dailyIncome = new Array(daysInMonth).fill(0);
   const dailySpending = new Array(daysInMonth).fill(0);
