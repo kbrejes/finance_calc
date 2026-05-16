@@ -130,3 +130,71 @@ export function getCalculatedStudentMetrics(student) {
     balance
   };
 }
+
+export function calculateDashboardStats({ students, spending, assets, currentMonth, currentYear, daysInMonth }) {
+  const dailyIncome = new Array(daysInMonth).fill(0);
+  const dailySpending = new Array(daysInMonth).fill(0);
+  const dailyItems = new Array(daysInMonth).fill(null).map(() => ({ earnings: [], spendings: [] }));
+
+  (students || []).forEach(student => {
+    (student.payments || []).forEach(payment => {
+      const d = new Date(payment.date);
+      if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+        const day = d.getDate() - 1;
+        dailyIncome[day] += payment.amount || 0;
+        dailyItems[day].earnings.push({ name: student.name, amount: payment.amount });
+      }
+    });
+  });
+
+  (spending || []).forEach(item => {
+    (item.purchaseDates || []).forEach(dateEntry => {
+      const d = new Date(dateEntry.date);
+      if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
+        const day = d.getDate() - 1;
+        const cost = dateEntry.cost || 0;
+        dailySpending[day] += cost;
+        dailyItems[day].spendings.push({ name: item.className, amount: cost });
+      }
+    });
+  });
+
+  const cumulativeIncome = [];
+  const cumulativeSpending = [];
+  let incSum = 0;
+  let spendSum = 0;
+
+  for (let i = 0; i < daysInMonth; i++) {
+    incSum += dailyIncome[i];
+    spendSum += dailySpending[i];
+    cumulativeIncome.push(incSum);
+    cumulativeSpending.push(spendSum);
+  }
+
+  const totalLifetimeIncome = (students || []).reduce((acc, s) => {
+    const pTotal = (s.payments || []).reduce((pAcc, p) => pAcc + (p.amount || 0), 0);
+    const aTotal = (s.adjustments || []).reduce((aAcc, a) => aAcc + (a.amount || 0), 0);
+    return acc + pTotal + aTotal;
+  }, 0);
+  
+  const totalLifetimeSpending = (spending || []).reduce((acc, s) => acc + (s.purchaseDates || []).reduce((dAcc, d) => {
+    return dAcc + (d.cost || 0);
+  }, 0), 0);
+
+  const totalLiquidCapital = (assets?.financial || []).reduce((sum, acc) => {
+    const multiplier = acc.currency === 'USDT' ? 36 : (acc.currency === 'USD' ? 35 : 1);
+    return sum + ((acc.value || 0) * multiplier);
+  }, 0);
+
+  return { 
+    cumulativeIncome, 
+    cumulativeSpending, 
+    dailyIncome, 
+    dailySpending,
+    dailyItems,
+    totalIncome: incSum,
+    totalSpending: spendSum,
+    balance: totalLifetimeIncome,
+    totalLiquidCapital
+  };
+}
