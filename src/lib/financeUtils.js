@@ -1,6 +1,12 @@
 const CURRENCY = '฿';
 const WEEKS_PER_MONTH = 4.33;
 
+export const EXCHANGE_RATES = {
+  USDT: 36,
+  USD: 35,
+  THB: 1
+};
+
 export function formatNum(num) {
   if (num === undefined || num === null) return '0';
   return Number(num).toLocaleString('en-US', {
@@ -182,7 +188,7 @@ export function calculateDashboardStats({ students, spending, assets, currentMon
   }, 0), 0);
 
   const totalLiquidCapital = (assets?.financial || []).reduce((sum, acc) => {
-    const multiplier = acc.currency === 'USDT' ? 36 : (acc.currency === 'USD' ? 35 : 1);
+    const multiplier = EXCHANGE_RATES[acc.currency] || 1;
     return sum + ((acc.value || 0) * multiplier);
   }, 0);
 
