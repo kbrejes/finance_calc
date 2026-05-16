@@ -504,6 +504,12 @@
         "value": 189.5,
         "currency": "USDT",
         "id": "acc_9v46082ka_1778898281360"
+      },
+      {
+        "id": "acc_64jcmpw8x_1778898556849",
+        "name": "New Account",
+        "value": 0,
+        "currency": "THB"
       }
     ],
     "vitals": [
