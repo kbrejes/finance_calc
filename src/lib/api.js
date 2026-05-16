@@ -151,3 +151,16 @@ export async function saveAssets(assets) {
   });
   return response.json();
 }
+
+// ============ ML ENDPOINTS ============
+
+export async function fetchMLSpendingPredictions() {
+  try {
+    const res = await fetch(`${API_BASE}/ml/predict-spending`)
+    if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    return await res.json()
+  } catch (error) {
+    console.error('Failed to fetch ML predictions:', error)
+    return {}
+  }
+}

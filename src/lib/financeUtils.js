@@ -137,7 +137,7 @@ export function getCalculatedStudentMetrics(student) {
   };
 }
 
-export function calculateDashboardStats({ students, spending, assets, currentMonth, currentYear, daysInMonth }) {
+export function calculateDashboardStats({ students, spending, assets, currentMonth, currentYear, daysInMonth, mlPredictions }) {
   const dailyIncome = new Array(daysInMonth).fill(0);
   const dailySpending = new Array(daysInMonth).fill(0);
   const dailyItems = new Array(daysInMonth).fill(null).map(() => ({ earnings: [], spendings: [] }));
@@ -177,13 +177,43 @@ export function calculateDashboardStats({ students, spending, assets, currentMon
     cumulativeSpending.push(spendSum);
   }
 
-  // ML Predictions will go here in the future
+  // --- ML PREDICTION LOGIC ---
   const today = new Date();
   today.setHours(0,0,0,0);
   const isCurrentMonth = today.getMonth() === currentMonth && today.getFullYear() === currentYear;
   
   let projectedSpending = null;
   let futureLabels = [];
+
+  if (isCurrentMonth && mlPredictions) {
+    const daysRemaining = daysInMonth - today.getDate();
+    const daysToForecast = daysRemaining + 30; // Finish the month + 30 days
+    
+    const dailyForecast = new Array(daysToForecast + 1).fill(0);
+    
+    Object.values(mlPredictions).forEach(pred => {
+      const predDate = new Date(pred.predictedNextDate);
+      predDate.setHours(0,0,0,0);
+      const diffDays = Math.round((predDate - today) / (1000 * 60 * 60 * 24));
+      
+      if (diffDays > 0 && diffDays <= daysToForecast) {
+         dailyForecast[diffDays] += pred.predictedNextAmount;
+      }
+    });
+    
+    let currentProjSpendSum = cumulativeSpending[today.getDate() - 1] || 0;
+    projectedSpending = new Array(today.getDate() - 1).fill(null);
+    projectedSpending.push(currentProjSpendSum); 
+    
+    for (let i = 1; i <= daysToForecast; i++) {
+      currentProjSpendSum += dailyForecast[i];
+      projectedSpending.push(currentProjSpendSum);
+      
+      const futureDate = new Date(today);
+      futureDate.setDate(today.getDate() + i);
+      futureLabels.push(`${futureDate.toLocaleString('default', { month: 'short' })} ${futureDate.getDate()}`);
+    }
+  }
 
   const totalLifetimeIncome = (students || []).reduce((acc, s) => {
     const pTotal = (s.payments || []).reduce((pAcc, p) => pAcc + (p.amount || 0), 0);

@@ -43,6 +43,7 @@ export default function DashboardTab() {
   const [spending, setSpending] = useState([])
   const [students, setStudents] = useState([])
   const [assets, setAssets] = useState({ financial: [] })
+  const [mlPredictions, setMlPredictions] = useState(null)
   const [currentDate, setCurrentDate] = useState(new Date())
   const [isZoomed, setIsZoomed] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
@@ -50,14 +51,16 @@ export default function DashboardTab() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [studentData, spendingData, assetData] = await Promise.all([
+        const [studentData, spendingData, assetData, mlData] = await Promise.all([
           api.fetchStudents(),
           api.fetchSpending(),
-          api.fetchAssets()
+          api.fetchAssets(),
+          api.fetchMLSpendingPredictions()
         ])
         setStudents(studentData || [])
         setSpending(spendingData || [])
         if (assetData) setAssets(assetData)
+        if (mlData) setMlPredictions(mlData)
       } catch (e) {
         console.error("Error loading dashboard data", e)
       } finally {
@@ -82,12 +85,15 @@ export default function DashboardTab() {
       assets,
       currentMonth,
       currentYear,
-      daysInMonth
+      daysInMonth,
+      mlPredictions
     })
-  }, [students, spending, assets, currentMonth, currentYear, daysInMonth])
+  }, [students, spending, assets, currentMonth, currentYear, daysInMonth, mlPredictions])
 
   const chartData = {
-    labels: daysArray.map(d => `${d}`),
+    labels: stats.isCurrentMonth && stats.futureLabels?.length > 0
+      ? [...daysArray.map(d => `${d}`), ...stats.futureLabels]
+      : daysArray.map(d => `${d}`),
     datasets: [
       {
         label: 'Income',
@@ -110,6 +116,20 @@ export default function DashboardTab() {
         fill: true,
       },
     ],
+  }
+
+  if (stats.isCurrentMonth && stats.projectedSpending) {
+    chartData.datasets.push({
+      label: 'Projected Spend (ML)',
+      data: stats.projectedSpending,
+      borderColor: 'rgba(251, 113, 133, 0.4)', // Faded Rose
+      backgroundColor: 'transparent',
+      borderWidth: 2,
+      borderDash: [5, 5],
+      tension: 0.4,
+      pointRadius: 0,
+      fill: false,
+    });
   }
 
   const chartOptions = {
