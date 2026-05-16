@@ -41,21 +41,18 @@ const execAsync = promisify(exec)
 
 async function syncToGithub() {
   try {
-    // 1. Add the ignored db.json specifically
-    await execAsync('git add -f db.json');
-    // 2. Create a temporary backup commit
+    // 1. Keep a clean, untimestamped copy in backups for Git to track version history
+    fs.copyFileSync(DB_FILE, path.join(BACKUP_DIR, 'db.json'));
+    
+    // 2. Run all git commands strictly inside the backups folder
+    await execAsync('git add db.json', { cwd: BACKUP_DIR });
     const timestamp = new Date().toISOString();
-    await execAsync(`git commit -m "data: cloud backup ${timestamp}"`);
-    // 3. Push to a dedicated backup branch (force push to keep it simple)
-    await execAsync('git push origin master:data-backup -f');
-    // 4. Undo the commit locally so the server stays clean for next deploy
-    await execAsync('git reset HEAD~1');
-    // 5. Re-ignore the file locally
-    await execAsync('git rm --cached db.json');
+    await execAsync(`git commit -m "data: cloud backup ${timestamp}"`, { cwd: BACKUP_DIR });
+    await execAsync('git push origin HEAD', { cwd: BACKUP_DIR });
     console.log('Cloud Sync: Success');
   } catch (error) {
     // Error is expected if there are no changes to commit
-    if (!error.message.includes('nothing to commit')) {
+    if (!error.message.includes('nothing to commit') && !error.message.includes('working tree clean')) {
       console.error('Cloud Sync Failed:', error.message);
     }
   }
