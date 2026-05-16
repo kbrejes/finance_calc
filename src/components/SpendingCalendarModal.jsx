@@ -24,6 +24,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
   const [accountInput, setAccountInput] = useState('none')
   const [editingId, setEditingId] = useState(null)
   const [drafts, setDrafts] = useState({}) // { [date]: { name, cost, account } }
+  const [isFormOpen, setIsFormOpen] = useState(false)
 
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
@@ -54,6 +55,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     // 3. Switch to new date
     setSelectedDate(dateStr)
     setEditingId(null)
+    setIsFormOpen(true)
 
     // 4. Load draft for the new date if it exists
     const draft = drafts[dateStr]
@@ -92,6 +94,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     
     onUpdateDates(updated)
     setEditingId(null)
+    setIsFormOpen(false)
     
     // Clear draft for this date after saving
     const newDrafts = { ...drafts }
@@ -108,6 +111,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     setNameInput(entry.name || '')
     setCostInput((entry.cost || 0).toString())
     setAccountInput(entry.account || item.account || 'none')
+    setIsFormOpen(true)
   }
 
   const handleRemoveEntry = (id) => {
@@ -289,70 +293,98 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                     </div>
                   );
                 })}
-              </div>
+                            {/* Add Entry Button */}
+              <button
+                onClick={() => {
+                  setEditingId(null)
+                  setNameInput('')
+                  const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
+                  setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
+                  setAccountInput(item.account || 'none')
+                  setIsFormOpen(true)
+                }}
+                className="w-full py-3 rounded-xl border border-dashed border-border/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all group"
+              >
+                <Plus className="h-3 w-3 inline-block mr-2 group-hover:scale-110 transition-transform" />
+                Add New Entry
+              </button>
 
-              {/* Add/Edit Form */}
-              <div className="p-4 rounded-xl bg-muted/10 border border-dashed border-border/50 space-y-3">
-                <div className="text-[9px] uppercase tracking-widest text-muted-foreground/50 font-bold">
-                  {editingId ? 'Edit Entry' : 'New Entry'}
-                </div>
-                <div className="space-y-2">
-                  <Input
-                    placeholder="Entry name (e.g. Lunch)"
-                    value={nameInput}
-                    onChange={(e) => setNameInput(e.target.value)}
-                    className="h-8 text-xs bg-background/50 border-border/30"
-                  />
-                  <div className="flex gap-2">
-                    <div className="relative flex-1">
-                      <span className="absolute left-2.5 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground/50 font-bold">฿</span>
+              {/* Add/Edit Popup Dialog */}
+              <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
+                <DialogContent className="sm:max-w-[360px] p-6 border-border/40 bg-card/95 backdrop-blur-2xl shadow-2xl animate-in zoom-in-95 duration-200">
+                  <DialogHeader className="mb-4">
+                    <DialogTitle className="text-sm font-black uppercase tracking-widest text-primary/80">
+                      {editingId ? 'Edit Entry' : 'Log Expense'}
+                    </DialogTitle>
+                    <div className="text-[10px] font-bold text-muted-foreground/50 italic">
+                      {new Date(selectedDate || '').toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+                    </div>
+                  </DialogHeader>
+
+                  <div className="space-y-4">
+                    <div className="space-y-1.5">
+                      <label className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">Description</label>
                       <Input
-                        type="number"
-                        placeholder="Cost"
-                        value={costInput}
-                        onChange={(e) => setCostInput(e.target.value)}
-                        onKeyDown={(e) => e.key === 'Enter' && handleSaveEntry()}
-                        className="pl-6 h-8 text-xs bg-background/50 border-border/30"
+                        placeholder="e.g. Lunch, Gas, Groceries..."
+                        value={nameInput}
+                        onChange={(e) => setNameInput(e.target.value)}
+                        className="h-10 text-xs bg-muted/20 border-border/20 focus:border-primary/50 transition-all"
                       />
                     </div>
 
-                    <div className="w-[140px]">
-                      <Select value={accountInput} onValueChange={setAccountInput}>
-                        <SelectTrigger className="h-8 text-[10px] bg-background/50 border-border/30">
-                          <SelectValue placeholder="Liquid Capital" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {(accounts || []).map(acc => (
-                            <SelectItem key={acc.id} value={acc.id} className="text-[10px]">
-                              {acc.name}
-                            </SelectItem>
-                          ))}
-                          <SelectItem value="none" className="text-[10px]">Manual</SelectItem>
-                        </SelectContent>
-                      </Select>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">Amount (฿)</label>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-primary/40 font-bold font-mono">฿</span>
+                          <Input
+                            type="number"
+                            placeholder="0.00"
+                            value={costInput}
+                            onChange={(e) => setCostInput(e.target.value)}
+                            onKeyDown={(e) => e.key === 'Enter' && handleSaveEntry()}
+                            className="pl-7 h-10 text-xs font-black bg-muted/20 border-border/20 focus:border-primary/50 transition-all"
+                            autoFocus
+                          />
+                        </div>
+                      </div>
+
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">Account</label>
+                        <Select value={accountInput} onValueChange={setAccountInput}>
+                          <SelectTrigger className="h-10 text-[10px] font-bold bg-muted/20 border-border/20">
+                            <SelectValue placeholder="Account" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {(accounts || []).map(acc => (
+                              <SelectItem key={acc.id} value={acc.id} className="text-[10px] font-bold">
+                                {acc.name}
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="none" className="text-[10px] font-bold">Manual</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
 
-                    <button
-                      onClick={handleSaveEntry}
-                      className="px-3 h-8 rounded-lg bg-primary text-primary-foreground font-black text-[10px] uppercase tracking-wider shadow-sm transition-transform active:scale-95"
-                    >
-                      {editingId ? 'Update' : 'Add'}
-                    </button>
-                    {editingId && (
+                    <div className="flex gap-2 pt-2">
                       <button
-                        onClick={() => {
-                          setEditingId(null)
-                          setNameInput('')
-                          setCostInput('')
-                        }}
-                        className="px-2 h-8 rounded-lg bg-muted text-muted-foreground font-bold text-[10px]"
+                        onClick={handleSaveEntry}
+                        className="flex-1 h-11 rounded-xl bg-primary text-primary-foreground font-black text-xs uppercase tracking-widest shadow-lg shadow-primary/20 hover:brightness-110 active:scale-[0.98] transition-all"
+                      >
+                        {editingId ? 'Update' : 'Confirm'}
+                      </button>
+                      <button
+                        onClick={() => setIsFormOpen(false)}
+                        className="px-4 h-11 rounded-xl bg-muted/30 text-muted-foreground font-bold text-[10px] uppercase tracking-widest hover:bg-muted/50 transition-all"
                       >
                         Cancel
                       </button>
-                    )}
+                    </div>
                   </div>
-                </div>
-              </div>
+                </DialogContent>
+              </Dialog>
+   </div>
             </div>
           )}
         </div>
