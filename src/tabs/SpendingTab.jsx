@@ -95,60 +95,61 @@ export default function SpendingTab() {
     const oldDates = selectedSpendingItem.purchaseDates || []
     const accountName = selectedSpendingItem.account || 'none'
     
-    if (accountName !== 'none') {
-      const oldTotalByAcc = {}
-      const newTotalByAcc = {}
-      
-      const getCost = (d) => {
-        if (typeof d === 'string') return (selectedSpendingItem.pricePerUnit || 0) * (selectedSpendingItem.units || 1)
-        return d.cost || 0
+    const oldTotalByAcc = {}
+    const newTotalByAcc = {}
+    
+    const getCost = (d) => {
+      if (typeof d === 'string') return (selectedSpendingItem.pricePerUnit || 0) * (selectedSpendingItem.units || 1)
+      return d.cost || 0
+    }
+
+    // Track totals per account ID or Name
+    oldDates.forEach(d => {
+      const accId = (typeof d === 'string' ? accountName : (d.account || accountName))
+      if (accId && accId !== 'none') {
+        oldTotalByAcc[accId] = (oldTotalByAcc[accId] || 0) + getCost(d)
       }
+    })
+    
+    dates.forEach(d => {
+      const accId = (typeof d === 'string' ? accountName : (d.account || accountName))
+      if (accId && accId !== 'none') {
+        newTotalByAcc[accId] = (newTotalByAcc[accId] || 0) + getCost(d)
+      }
+    })
 
-      const normalize = (name) => (name || '').trim().toLowerCase()
-
-      // Track totals per account
-      oldDates.forEach(d => {
-        const rawAcc = (typeof d === 'string' ? accountName : (d.account || accountName))
-        const acc = normalize(rawAcc)
-        if (acc !== 'none') {
-          oldTotalByAcc[acc] = (oldTotalByAcc[acc] || 0) + getCost(d)
-        }
-      })
+    const allAccKeys = new Set([...Object.keys(oldTotalByAcc), ...Object.keys(newTotalByAcc)])
+    let anyChange = false
+    
+    const assetData = await api.fetchAssets()
+    if (assetData && assetData.financial) {
+      let updatedFinancial = [...assetData.financial]
       
-      dates.forEach(d => {
-        const rawAcc = (typeof d === 'string' ? accountName : (d.account || accountName))
-        const acc = normalize(rawAcc)
-        if (acc !== 'none') {
-          newTotalByAcc[acc] = (newTotalByAcc[acc] || 0) + getCost(d)
-        }
-      })
-
-      const allAccs = new Set([...Object.keys(oldTotalByAcc), ...Object.keys(newTotalByAcc)])
-      let anyChange = false
-      
-      const assetData = await api.fetchAssets()
-      if (assetData && assetData.financial) {
-        let updatedFinancial = [...assetData.financial]
-        
-        allAccs.forEach(accKey => {
-          const diff = (newTotalByAcc[accKey] || 0) - (oldTotalByAcc[accKey] || 0)
-          if (diff !== 0) {
+      allAccKeys.forEach(accKey => {
+        const diff = (newTotalByAcc[accKey] || 0) - (oldTotalByAcc[accKey] || 0)
+        if (diff !== 0) {
+          // Find account by STRICT ID
+          const targetAcc = updatedFinancial.find(f => f.id === accKey || f.name === accKey)
+          
+          if (targetAcc) {
             anyChange = true
             updatedFinancial = updatedFinancial.map(f => {
-              if (normalize(f.name) === accKey) {
-                console.log(`[Deduction] Match found: ${f.name}. Old value: ${f.value}, Subtracting: ${diff}`)
+              if (f.id === targetAcc.id || f.name === targetAcc.name) {
+                console.log(`[Deduction] Match found: ${f.name}. Subtracting: ${diff}`)
                 return { ...f, value: (parseFloat(f.value) || 0) - diff }
               }
               return f
             })
           }
-        })
-        
-        if (anyChange) {
-          console.log('[Deduction] Saving atomic update to vault...')
-          await api.saveAssets({ ...assetData, financial: updatedFinancial })
-          setAccounts(updatedFinancial)
         }
+      })
+      
+      if (anyChange) {
+        console.log('[Deduction] Atomic Sync Success')
+        await api.saveAssets({ ...assetData, financial: updatedFinancial })
+        setAccounts(updatedFinancial)
+        // Tiny delay to ensure OS file flush before the next write
+        await new Promise(r => setTimeout(r, 100))
       }
     }
 

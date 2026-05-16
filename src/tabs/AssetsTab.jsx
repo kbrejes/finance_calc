@@ -45,9 +45,23 @@ export default function AssetsTab() {
       try {
         const data = await api.fetchAssets()
         if (data) {
+          // Migration: Ensure all financial assets have IDs
+          const migratedFinancial = (data.financial || []).map(item => ({
+            ...item,
+            id: item.id || `acc_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`
+          }))
+          
+          const migratedData = { ...data, financial: migratedFinancial }
+          
+          // If we actually added IDs, save it back once
+          const hadMissingIds = (data.financial || []).some(item => !item.id)
+          if (hadMissingIds) {
+            await api.saveAssets(migratedData)
+          }
+
           setAssets(prev => ({
             ...prev,
-            ...data
+            ...migratedData
           }))
         }
       } catch (e) {
@@ -56,11 +70,23 @@ export default function AssetsTab() {
         setIsLoading(false)
       }
     }
+    
     load()
     
-    // Refresh when the window gets focus (e.g. after switching back from another tab)
+    // Refresh when user switches back to this tab or window
+    const handleVisibility = () => {
+      if (document.visibilityState === 'visible') {
+        load()
+      }
+    }
+    
+    document.addEventListener('visibilitychange', handleVisibility)
     window.addEventListener('focus', load)
-    return () => window.removeEventListener('focus', load)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibility)
+      window.removeEventListener('focus', load)
+    }
   }, [])
 
   const handleSave = async (newAssets) => {
@@ -75,7 +101,7 @@ export default function AssetsTab() {
   const addItem = (section) => {
     const defaults = {
       physical: { name: 'New Item', value: '0' },
-      financial: { name: 'New Account', value: 0, currency: 'THB' },
+      financial: { id: `acc_${Math.random().toString(36).substr(2, 9)}_${Date.now()}`, name: 'New Account', value: 0, currency: 'THB' },
       vitals: { name: 'New Document', exp: new Date().toISOString().split('T')[0], type: 'standard' },
       digital: { name: 'New Channel', sub: 0, posts: 0 }
     }

@@ -263,7 +263,13 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                         <span className="text-[11px] font-bold text-foreground/80">{entry.name || item.className}</span>
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-medium text-white/50">฿{(entry.cost || 0).toLocaleString()}</span>
-                          <span className="text-[8px] font-black text-primary/60 uppercase">{entry.account || item.account || 'none'}</span>
+                          <span className="text-[8px] font-black text-primary/60 uppercase">
+                            {(() => {
+                              const accId = entry.account || item.account || 'none'
+                              const acc = (accounts || []).find(a => a.id === accId || a.name === accId)
+                              return acc ? acc.name : (accId === 'none' ? 'Manual' : accId)
+                            })()}
+                          </span>
                         </div>
                       </div>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -310,14 +316,14 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                       />
                     </div>
 
-                    <div className="w-[120px]">
+                    <div className="w-[140px]">
                       <Select value={accountInput} onValueChange={setAccountInput}>
                         <SelectTrigger className="h-8 text-[10px] bg-background/50 border-border/30">
-                          <SelectValue placeholder="Account" />
+                          <SelectValue placeholder="Liquid Capital" />
                         </SelectTrigger>
                         <SelectContent>
                           {(accounts || []).map(acc => (
-                            <SelectItem key={acc.name} value={acc.name} className="text-[10px]">
+                            <SelectItem key={acc.id} value={acc.id} className="text-[10px]">
                               {acc.name}
                             </SelectItem>
                           ))}
