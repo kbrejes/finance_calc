@@ -39,6 +39,9 @@ export default function AssetsTab() {
   })
 
   const [isLoading, setIsLoading] = useState(true)
+  const [showDocs, setShowDocs] = useState(false)
+  const [showPhysical, setShowPhysical] = useState(false)
+  const [showDigital, setShowDigital] = useState(false)
 
   useEffect(() => {
     const load = async () => {
@@ -155,8 +158,33 @@ export default function AssetsTab() {
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500 pb-20">
+      {/* Window Controls */}
+      <div className="flex flex-wrap gap-3">
+        <button 
+          onClick={() => setShowDocs(!showDocs)}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${showDocs ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-muted/5 border-border/20 text-muted-foreground hover:border-border/40 hover:text-foreground/80'}`}
+        >
+          <ShieldCheck className="h-4 w-4" />
+          Documents
+        </button>
+        <button 
+          onClick={() => setShowPhysical(!showPhysical)}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${showPhysical ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-muted/5 border-border/20 text-muted-foreground hover:border-border/40 hover:text-foreground/80'}`}
+        >
+          <FileText className="h-4 w-4" />
+          Physical Inventory
+        </button>
+        <button 
+          onClick={() => setShowDigital(!showDigital)}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all border ${showDigital ? 'bg-primary/10 border-primary/30 text-primary' : 'bg-muted/5 border-border/20 text-muted-foreground hover:border-border/40 hover:text-foreground/80'}`}
+        >
+          <Globe className="h-4 w-4" />
+          Digital Equity
+        </button>
+      </div>
+
       {/* Financial & Documents */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className={`grid grid-cols-1 ${showDocs ? 'md:grid-cols-2' : ''} gap-6`}>
         {/* Financial Assets */}
         <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
           <div className="flex items-center justify-between mb-6">
@@ -205,7 +233,8 @@ export default function AssetsTab() {
         </div>
 
         {/* Documents */}
-        <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
+        {showDocs && (
+          <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
           <div className="flex items-center justify-between mb-6">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-primary/10">
@@ -289,10 +318,12 @@ export default function AssetsTab() {
             })}
           </div>
         </div>
+        )}
       </div>
 
       {/* Physical Assets */}
-      <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
+      {showPhysical && (
+        <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
@@ -333,9 +364,11 @@ export default function AssetsTab() {
           ))}
         </div>
       </div>
+      )}
 
       {/* Digital Equity */}
-      <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
+      {showDigital && (
+        <div className="rounded-2xl bg-card p-6 border border-border/40 shadow-sm relative group/section">
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
             <div className="p-2 rounded-lg bg-primary/10">
@@ -389,6 +422,7 @@ export default function AssetsTab() {
           })}
         </div>
       </div>
+      )}
     </div>
   )
 }
