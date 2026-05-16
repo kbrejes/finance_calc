@@ -87,9 +87,7 @@ export default function DashboardTab() {
   }, [students, spending, assets, currentMonth, currentYear, daysInMonth])
 
   const chartData = {
-    labels: stats.isCurrentMonth 
-      ? [...daysArray.map(d => `${d}`), ...stats.futureLabels]
-      : daysArray.map(d => `${d}`),
+    labels: daysArray.map(d => `${d}`),
     datasets: [
       {
         label: 'Income',
@@ -112,20 +110,6 @@ export default function DashboardTab() {
         fill: true,
       },
     ],
-  }
-
-  if (stats.isCurrentMonth && stats.projectedSpending) {
-    chartData.datasets.push({
-      label: 'Projected Spend',
-      data: stats.projectedSpending,
-      borderColor: 'rgba(251, 113, 133, 0.4)', // Faded Rose
-      backgroundColor: 'transparent',
-      borderWidth: 2,
-      borderDash: [5, 5],
-      tension: 0.4,
-      pointRadius: 0,
-      fill: false,
-    });
   }
 
   const chartOptions = {
