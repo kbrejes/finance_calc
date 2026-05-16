@@ -50,9 +50,9 @@ export async function generateSpendingPredictions(spendingData) {
     // Train the models
     const options = {
       seed: 42,
-      maxFeatures: 3,
       replacement: true,
-      nEstimators: 50 // 50 decision trees per forest
+      nEstimators: 50,
+      noOOB: true
     };
 
     const daysModel = new RandomForestRegression(options);
