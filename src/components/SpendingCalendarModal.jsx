@@ -85,7 +85,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     let updated
     if (editingId) {
       updated = item.purchaseDates.map((p, idx) => {
-        const pId = typeof p === 'string' ? `legacy-${idx}` : (p.id || idx)
+        const pId = p.id || idx
         return pId === editingId ? newEntry : p
       })
     } else {
@@ -116,7 +116,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
 
   const handleRemoveEntry = (id) => {
     const updated = item.purchaseDates.filter((p, idx) => {
-      const pId = typeof p === 'string' ? `legacy-${idx}` : (p.id || idx)
+      const pId = p.id || idx
       return pId !== id
     })
     onUpdateDates(updated)
@@ -153,7 +153,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
   }
 
   const dayEntries = selectedDate 
-    ? (item.purchaseDates || []).filter(p => (typeof p === 'string' ? p : p.date) === selectedDate)
+    ? (item.purchaseDates || []).filter(p => p.date === selectedDate)
     : []
 
   return (
@@ -193,9 +193,9 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
             {rows.map((week, weekIdx) =>
               week.map((day, dayIdx) => {
                 const dateStr = day ? formatDate(currentDate.getFullYear(), currentDate.getMonth(), day) : ''
-                const entries = day ? (item?.purchaseDates || []).filter(p => (typeof p === 'string' ? p : p.date) === dateStr) : []
+                const entries = day ? (item?.purchaseDates || []).filter(p => p.date === dateStr) : []
                 const isMarked = entries.length > 0
-                const dayTotal = entries.reduce((sum, e) => sum + (typeof e === 'string' ? (item.pricePerUnit * item.units) : (e.cost || 0)), 0)
+                const dayTotal = entries.reduce((sum, e) => sum + (e.cost || 0), 0)
                 const isCurrentlySelected = selectedDate === dateStr
                 
                 const today = new Date()
@@ -252,14 +252,8 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
 
               {/* List of existing entries for the day */}
               <div className="space-y-2">
-                {(item.purchaseDates || []).map((rawEntry, globalIdx) => {
-                  const entryDate = typeof rawEntry === 'string' ? rawEntry : rawEntry.date;
-                  if (entryDate !== selectedDate) return null;
-
-                  // Normalize legacy string entries using the GLOBAL index as ID
-                  const entry = typeof rawEntry === 'string' 
-                    ? { id: `legacy-${globalIdx}`, date: rawEntry, name: item.className, cost: (item.pricePerUnit * item.units) }
-                    : rawEntry;
+                {(item.purchaseDates || []).map((entry, globalIdx) => {
+                  if (entry.date !== selectedDate) return null;
 
                   return (
                     <div key={entry.id || `entry-${globalIdx}`} className="group flex items-center justify-between p-2.5 rounded-lg bg-muted/20 border border-border/30 hover:border-border/60 transition-colors">

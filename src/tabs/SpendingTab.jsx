@@ -98,23 +98,18 @@ export default function SpendingTab() {
     const oldTotalByAcc = {}
     const newTotalByAcc = {}
     
-    const getCost = (d) => {
-      if (typeof d === 'string') return (selectedSpendingItem.pricePerUnit || 0) * (selectedSpendingItem.units || 1)
-      return d.cost || 0
-    }
-
     // Track totals per account ID or Name
     oldDates.forEach(d => {
-      const accId = (typeof d === 'string' ? accountName : (d.account || accountName))
+      const accId = d.account || accountName
       if (accId && accId !== 'none') {
-        oldTotalByAcc[accId] = (oldTotalByAcc[accId] || 0) + getCost(d)
+        oldTotalByAcc[accId] = (oldTotalByAcc[accId] || 0) + (d.cost || 0)
       }
     })
     
     dates.forEach(d => {
-      const accId = (typeof d === 'string' ? accountName : (d.account || accountName))
+      const accId = d.account || accountName
       if (accId && accId !== 'none') {
-        newTotalByAcc[accId] = (newTotalByAcc[accId] || 0) + getCost(d)
+        newTotalByAcc[accId] = (newTotalByAcc[accId] || 0) + (d.cost || 0)
       }
     })
 

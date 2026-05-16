@@ -21,7 +21,7 @@ export function getCalculatedSpendingMetrics(item) {
   const now = new Date();
   
   // 1. Get unique days for frequency calculation
-  const uniqueDateStrings = [...new Set(item.purchaseDates.map(p => typeof p === 'string' ? p : p.date))];
+  const uniqueDateStrings = [...new Set(item.purchaseDates.map(p => p.date))];
   const uniqueDates = uniqueDateStrings
     .map(d => new Date(d))
     .sort((a, b) => a - b);
@@ -48,16 +48,9 @@ export function getCalculatedSpendingMetrics(item) {
 
   // 2. Calculate Total Cost and Monthly Projections
   let totalCost = 0;
-  let entryCount = 0;
+  let entryCount = item.purchaseDates.length;
   for (const p of item.purchaseDates) {
-    if (typeof p === 'object' && p.cost !== undefined) {
-      totalCost += p.cost;
-      entryCount++;
-    } else if (typeof p === 'string') {
-      const legacyCost = (item.pricePerUnit || 0) * (item.units || 1);
-      totalCost += legacyCost;
-      entryCount++;
-    }
+    totalCost += (p.cost || 0);
   }
   
   let calcMonthlyCost = totalCost;

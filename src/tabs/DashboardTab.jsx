@@ -93,11 +93,11 @@ export default function DashboardTab() {
 
     spending.forEach(item => {
       item.purchaseDates?.forEach(dateEntry => {
-        const d = new Date(typeof dateEntry === 'string' ? dateEntry : dateEntry.date)
+        const d = new Date(dateEntry.date)
         if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
           const day = d.getDate() - 1
-          const cost = typeof dateEntry === 'string' ? (item.pricePerUnit * item.units) : (dateEntry.cost || (item.pricePerUnit * item.units))
-          dailySpending[day] += cost || 0
+          const cost = dateEntry.cost || 0
+          dailySpending[day] += cost
           dailyItems[day].spendings.push({ name: item.className, amount: cost })
         }
       })
@@ -123,8 +123,7 @@ export default function DashboardTab() {
     }, 0)
     
     const totalLifetimeSpending = spending.reduce((acc, s) => acc + (s.purchaseDates || []).reduce((dAcc, d) => {
-      const cost = typeof d === 'string' ? (s.pricePerUnit * s.units) : (d.cost || (s.pricePerUnit * s.units))
-      return dAcc + (cost || 0)
+      return dAcc + (d.cost || 0)
     }, 0), 0)
 
     const totalLiquidCapital = (assets.financial || []).reduce((sum, acc) => {
