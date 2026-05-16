@@ -228,13 +228,6 @@
           "date": "2026-05-15",
           "name": "Cashew 800g",
           "cost": 179
-        },
-        {
-          "id": 1778898576615,
-          "date": "2026-05-16",
-          "name": "ppifs",
-          "cost": 6000,
-          "account": "acc_64jcmpw8x_1778898556849"
         }
       ]
     },
@@ -515,7 +508,7 @@
       {
         "id": "acc_64jcmpw8x_1778898556849",
         "name": "THB Cash (Exchange 24)",
-        "value": 11106,
+        "value": 7,
         "currency": "THB"
       }
     ],
