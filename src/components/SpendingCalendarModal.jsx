@@ -15,6 +15,7 @@ import {
   SelectValue,
 } from './ui/select'
 import * as DialogPrimitive from "@radix-ui/react-dialog"
+import { getCalculatedSpendingMetrics, formatNum, formatMoney, globalSettings, convertToBase } from '../lib/financeUtils'
 
 export default function SpendingCalendarModal({ open, onOpenChange, item, onUpdateDates, accounts }) {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -28,6 +29,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
   const [isFormOpen, setIsFormOpen] = useState(false)
   const [billingDateInput, setBillingDateInput] = useState('')
   const [showEarlyPayment, setShowEarlyPayment] = useState(false)
+  const [currencyInput, setCurrencyInput] = useState(globalSettings.baseCurrency || 'THB')
 
   const today = new Date()
   const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
@@ -61,6 +63,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     setAccountInput('none')
     setBillingDateInput('')
     setShowEarlyPayment(false)
+    setCurrencyInput(globalSettings.baseCurrency || 'THB')
   }
 
   const handleSaveEntry = () => {
@@ -73,6 +76,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
       cost: parseFloat(costInput),
       quantity: parseFloat(quantityInput) || 1,
       account: accountInput,
+      currency: currencyInput,
       ...(billingDateInput && billingDateInput !== selectedDate ? { billingDate: billingDateInput } : {})
     }
     
@@ -101,6 +105,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     setQuantityInput('1')
     setBillingDateInput('')
     setShowEarlyPayment(false)
+    setCurrencyInput(globalSettings.baseCurrency || 'THB')
   }
 
   const handleEditEntry = (entry) => {
@@ -111,6 +116,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     setAccountInput(entry.account || 'none')
     setBillingDateInput(entry.billingDate || '')
     setShowEarlyPayment(!!entry.billingDate)
+    setCurrencyInput(entry.currency || globalSettings.baseCurrency || 'THB')
     setIsFormOpen(true)
   }
 
@@ -159,7 +165,10 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     ? (item.purchaseDates || []).filter(p => p.date === selectedDate)
     : []
 
-  const formatNum = (num) => num.toLocaleString(undefined, { maximumFractionDigits: 2 })
+  const getSymbol = (currency) => {
+    const symbols = { USD: '$', USDT: '₮', THB: '฿', RUB: '₽', ARS: 'AR$' };
+    return symbols[currency] || currency + ' ';
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -200,8 +209,16 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                 const dateStr = day ? formatDate(currentDate.getFullYear(), currentDate.getMonth(), day) : ''
                 const entries = day ? (item?.purchaseDates || []).filter(p => p.date === dateStr) : []
                 const isMarked = entries.length > 0
-                const dayTotal = entries.reduce((sum, e) => sum + (e.cost || 0), 0)
                 const isCurrentlySelected = selectedDate === dateStr
+                const hasSingleCurrency = entries.length > 0 && entries.every(e => (e.currency || 'THB') === (entries[0].currency || 'THB'))
+                const dayCurrency = hasSingleCurrency ? (entries[0].currency || 'THB') : (globalSettings.baseCurrency || 'USD')
+                const dayTotal = entries.reduce((sum, e) => {
+                  if (hasSingleCurrency) {
+                    return sum + (e.cost || 0);
+                  } else {
+                    return sum + convertToBase(e.cost || 0, e.currency || 'THB');
+                  }
+                }, 0)
                 
                 const today = new Date()
                 today.setHours(0, 0, 0, 0)
@@ -234,7 +251,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                     <span className={isMarked ? 'text-[10px] font-bold leading-none' : 'text-xs font-bold'}>{day}</span>
                     {isMarked && (
                       <span className="text-[7px] font-medium leading-none mt-0.5 opacity-80">
-                        ฿{dayTotal >= 1000 ? (dayTotal / 1000).toFixed(dayTotal % 1000 === 0 ? 0 : 1) + 'k' : dayTotal}
+                        {getSymbol(dayCurrency)}{dayTotal >= 1000 ? (dayTotal / 1000).toFixed(dayTotal % 1000 === 0 ? 0 : 1) + 'k' : dayTotal}
                       </span>
                     )}
                     {isMarked && entries.length > 1 && (
@@ -284,7 +301,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                           )}
                         </div>
                       </div>
-                      <div className="text-xs font-black text-foreground tabular-nums">฿{formatNum(entry.cost)}</div>
+                      <div className="text-xs font-black text-foreground tabular-nums">{formatMoney(entry.cost, entry.currency)}</div>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => handleEditEntry(entry)}
@@ -359,9 +376,9 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                       </div>
 
                       <div className="space-y-1.5">
-                        <label className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">Amount (฿)</label>
+                        <label className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">Amount</label>
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-primary/40 font-bold font-mono">฿</span>
+                          <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-primary/40 font-bold font-mono">{getSymbol(currencyInput)}</span>
                           <Input
                             type="number"
                             placeholder="0.00"
@@ -374,6 +391,21 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                       </div>
                     </div>
 
+                    {/* Currency & Account Row */}
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">Currency</label>
+                        <Select value={currencyInput} onValueChange={setCurrencyInput}>
+                          <SelectTrigger className="h-10 text-[10px] font-bold bg-muted/20 border-border/20">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {Object.keys(globalSettings.rates).map(curr => (
+                              <SelectItem key={curr} value={curr} className="text-[10px] font-bold">{curr}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
                       <div className="space-y-1.5">
                         <label className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">Account</label>
                         <Select value={accountInput} onValueChange={setAccountInput}>
@@ -390,6 +422,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                           </SelectContent>
                         </Select>
                       </div>
+                    </div>
 
                       {/* Early payment toggle */}
                       <button

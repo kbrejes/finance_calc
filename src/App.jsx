@@ -4,18 +4,28 @@ import SpendingTab from './tabs/SpendingTab'
 import EarningsTab from './tabs/EarningsTab'
 import DashboardTab from './tabs/DashboardTab'
 import AssetsTab from './tabs/AssetsTab'
+import { fetchSettings } from './lib/api'
+import { updateGlobalSettings } from './lib/financeUtils'
 
 export default function App() {
   const [activeTab, setActiveTab] = useState(() => localStorage.getItem('activeTab') || 'spending')
+  const [settingsLoaded, setSettingsLoaded] = useState(false)
 
   // Load on mount
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem('activeTab')
-      if (saved) setActiveTab(saved)
-    } catch (e) {
-      console.error('Failed to load tab state', e)
+    async function init() {
+      try {
+        const saved = localStorage.getItem('activeTab')
+        if (saved) setActiveTab(saved)
+      } catch (e) {
+        console.error('Failed to load tab state', e)
+      }
+
+      const settings = await fetchSettings()
+      updateGlobalSettings(settings)
+      setSettingsLoaded(true)
     }
+    init()
   }, [])
 
   const handleTabChange = (val) => {
@@ -25,6 +35,10 @@ export default function App() {
     } catch (e) {
       console.error('Failed to save tab state', e)
     }
+  }
+
+  if (!settingsLoaded) {
+    return <div className="min-h-screen bg-background flex items-center justify-center text-muted-foreground animate-pulse text-xs font-black uppercase tracking-widest">Loading Settings...</div>
   }
 
   return (

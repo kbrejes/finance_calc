@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from './ui/select'
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { getCalculatedStudentMetrics, formatNum } from '../lib/financeUtils'
+import { getCalculatedStudentMetrics, formatNum, formatMoney } from '../lib/financeUtils'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = [
@@ -172,13 +172,13 @@ export default function CalendarModal({
   }
 
   const statItems = [
-    { label: 'Balance', value: `฿${formatNum(metrics.balance)}`, icon: Wallet },
-    { label: 'Total Paid', value: `฿${formatNum(metrics.totalPaid)}`, icon: TrendingUp },
-    { label: 'Delivered', value: `฿${formatNum(metrics.totalCost)}`, icon: BookOpen },
-    { label: 'Adjustments', value: `฿${formatNum(metrics.totalAdjustments)}`, icon: History },
-    { label: 'Projection', value: `฿${formatNum(metrics.monthlyProjection)}`, icon: Activity },
+    { label: 'Balance', value: formatMoney(metrics.balance, student.currency), icon: Wallet },
+    { label: 'Total Paid', value: formatMoney(metrics.totalPaid, student.currency), icon: TrendingUp },
+    { label: 'Delivered', value: formatMoney(metrics.totalCost, student.currency), icon: BookOpen },
+    { label: 'Adjustments', value: formatMoney(metrics.totalAdjustments, student.currency), icon: History },
+    { label: 'Projection', value: formatMoney(metrics.monthlyProjection, student.currency), icon: Activity },
     { label: 'Frequency', value: metrics.hasData ? `${metrics.avgDays.toFixed(1)} Days` : '—', icon: Clock },
-    { label: 'Daily Yield', value: metrics.hasData ? `฿${formatNum(metrics.dailyIncome)}` : '—', icon: TrendingUp },
+    { label: 'Daily Yield', value: metrics.hasData ? formatMoney(metrics.dailyIncome, student.currency) : '—', icon: TrendingUp },
   ]
 
   return (
@@ -255,7 +255,7 @@ export default function CalendarModal({
                         <div key={adj.id} className="flex items-center justify-between p-3 rounded-xl bg-muted/10 border border-border group hover:border-white/20 transition-all">
                           <div className="flex flex-col gap-0.5">
                             <div className="flex items-center gap-2">
-                              <span className="text-[10px] font-black text-white">{adj.amount >= 0 ? '+' : ''}฿{formatNum(adj.amount)}</span>
+                              <span className="text-[10px] font-black text-white">{adj.amount >= 0 ? '+' : ''}{formatMoney(adj.amount, student.currency)}</span>
                               <span className="text-[8px] font-bold text-white/30">{adj.date}</span>
                             </div>
                             <div className="text-[9px] font-bold text-white/60">{adj.comment}</div>
@@ -332,7 +332,7 @@ export default function CalendarModal({
                           }`}
                         >
                           <DollarSign className="h-3 w-3" />
-                          {paymentMap[selectedDateStr] > 0 ? `Paid ฿${formatNum(paymentMap[selectedDateStr])}` : 'Add Payment'}
+                          {paymentMap[selectedDateStr] > 0 ? `Paid ${formatMoney(paymentMap[selectedDateStr], student.currency)}` : 'Add Payment'}
                         </button>
                       )}
                     </div>

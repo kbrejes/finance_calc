@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
 import * as api from '../lib/api'
-import { formatNum, calculateDashboardStats } from '../lib/financeUtils'
+import { formatNum, calculateDashboardStats, formatMoney } from '../lib/financeUtils'
 import { 
   ChevronLeft, 
   ChevronRight, 
@@ -207,7 +207,7 @@ export default function DashboardTab() {
             const yVal = context.parsed.y;
             if (datasetLabel === 'Today') return null; // Skip drawing 'Today' in tooltip
             
-            let result = [`${datasetLabel}: ฿${formatNum(yVal)}`];
+            let result = [`${datasetLabel}: ${formatMoney(yVal)}`];
             
             // If we are hovering over the ML line, show the specific projected items for that day
             if (datasetLabel === 'Projected Spend (ML)') {
@@ -215,7 +215,7 @@ export default function DashboardTab() {
               const dayData = stats.chartDailyItems[index];
               if (dayData && dayData.projected && dayData.projected.length > 0) {
                 dayData.projected.forEach(p => {
-                  result.push(`  → ${p.name}: +฿${formatNum(p.amount)}`);
+                  result.push(`  → ${p.name}: +${formatMoney(p.rawAmount, p.currency)}`);
                 });
               }
             }
@@ -224,7 +224,7 @@ export default function DashboardTab() {
               const dayData = stats.chartDailyItems[index];
               if (dayData && dayData.projectedIncome && dayData.projectedIncome.length > 0) {
                 dayData.projectedIncome.forEach(p => {
-                  result.push(`  → ${p.name}: +฿${formatNum(p.amount)}`);
+                  result.push(`  → ${p.name}: +${formatMoney(p.rawAmount, p.currency)}`);
                 });
               }
             }
@@ -249,13 +249,13 @@ export default function DashboardTab() {
           <div className="p-3 rounded-2xl bg-card border border-border/40 shadow-sm min-w-[140px]">
             <div className="text-[10px] font-black text-emerald-400/60 uppercase tracking-widest mb-1">Liquid Capital</div>
             <div className="text-xl font-black text-emerald-500">
-              ฿{formatNum(stats.totalLiquidCapital)}
+              {formatMoney(stats.totalLiquidCapital)}
             </div>
           </div>
           <div className="p-3 rounded-2xl bg-card border border-border/40 shadow-sm min-w-[140px]">
             <div className="text-[10px] font-black text-primary/60 uppercase tracking-widest mb-1">Student Income</div>
             <div className="text-xl font-black text-primary">
-              ฿{formatNum(stats.balance)}
+              {formatMoney(stats.balance)}
             </div>
           </div>
           <div className="hidden lg:block ml-4">
@@ -320,15 +320,15 @@ export default function DashboardTab() {
                 
                 <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar pr-0.5">
                   {dayData.earnings.map((e, idx) => (
-                    <div key={`e-${idx}`} className="flex items-center gap-1 text-[7px] leading-tight px-1 py-0.5 rounded-md bg-emerald-500 text-white font-black" title={`${e.name}: ฿${e.amount}`}>
+                    <div key={`e-${idx}`} className="flex items-center gap-1 text-[7px] leading-tight px-1 py-0.5 rounded-md bg-emerald-500 text-white font-black" title={`${e.name}: ${formatMoney(e.rawAmount, e.currency)}`}>
                       <ArrowUpCircle className="h-1.5 w-1.5 shrink-0" />
-                      <span className="whitespace-nowrap">{e.name} ฿{formatNum(e.amount)}</span>
+                      <span className="whitespace-nowrap">{e.name} {formatMoney(e.rawAmount, e.currency)}</span>
                     </div>
                   ))}
                   {dayData.spendings.map((s, idx) => (
-                    <div key={`s-${idx}`} className="flex items-center gap-1 text-[7px] leading-tight px-1 py-0.5 rounded-md bg-rose-500 text-white font-black" title={`${s.name}: ฿${s.amount}`}>
+                    <div key={`s-${idx}`} className="flex items-center gap-1 text-[7px] leading-tight px-1 py-0.5 rounded-md bg-rose-500 text-white font-black" title={`${s.name}: ${formatMoney(s.rawAmount, s.currency)}`}>
                       <ArrowDownCircle className="h-1.5 w-1.5 shrink-0" />
-                      <span className="whitespace-nowrap">{s.name} ฿{formatNum(s.amount)}</span>
+                      <span className="whitespace-nowrap">{s.name} {formatMoney(s.rawAmount, s.currency)}</span>
                     </div>
                   ))}
                 </div>

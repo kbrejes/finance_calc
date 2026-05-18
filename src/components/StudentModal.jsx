@@ -16,12 +16,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from './ui/select'
+import { globalSettings } from '../lib/financeUtils'
 
 export default function StudentModal({ open, onOpenChange, onSubmit, initialData }) {
   const [formData, setFormData] = useState({
     name: '',
     price: '',
     status: 'active',
+    currency: globalSettings.baseCurrency || 'USD',
   })
 
   useEffect(() => {
@@ -30,12 +32,14 @@ export default function StudentModal({ open, onOpenChange, onSubmit, initialData
         name: initialData.name || '',
         price: initialData.price || '',
         status: initialData.status || 'active',
+        currency: initialData.currency || globalSettings.baseCurrency || 'USD',
       })
     } else {
       setFormData({
         name: '',
         price: '',
         status: 'active',
+        currency: globalSettings.baseCurrency || 'USD',
       })
     }
   }, [initialData, open])
@@ -80,9 +84,9 @@ export default function StudentModal({ open, onOpenChange, onSubmit, initialData
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="price" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Lesson Price (฿)</Label>
+              <Label htmlFor="price" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Lesson Price</Label>
               <Input
                 id="price"
                 type="number"
@@ -105,6 +109,20 @@ export default function StudentModal({ open, onOpenChange, onSubmit, initialData
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="paused">Paused</SelectItem>
                   <SelectItem value="finished">Finished</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="currency" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Currency</Label>
+              <Select value={formData.currency} onValueChange={(value) => handleChange('currency', value)}>
+                <SelectTrigger id="currency">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {Object.keys(globalSettings.rates).map(curr => (
+                    <SelectItem key={curr} value={curr}>{curr}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

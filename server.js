@@ -25,11 +25,13 @@ app.use(express.static(path.join(__dirname, 'dist')));
 
 function readDB() {
   try {
-    if (!fs.existsSync(DB_FILE)) return { spending: [], students: [] };
-    return JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+    if (!fs.existsSync(DB_FILE)) return { spending: [], students: [], settings: { baseCurrency: 'USD', rates: {} } };
+    const data = JSON.parse(fs.readFileSync(DB_FILE, 'utf-8'));
+    if (!data.settings) data.settings = { baseCurrency: 'USD', rates: {} };
+    return data;
   } catch (error) {
     console.error('Error reading DB:', error);
-    return { spending: [], students: [] };
+    return { spending: [], students: [], settings: { baseCurrency: 'USD', rates: {} } };
   }
 }
 
@@ -92,8 +94,36 @@ function writeDB(data) {
 
 // Initialize db.json if it doesn't exist
 if (!fs.existsSync(DB_FILE)) {
-  writeDB({ spending: [], students: [] });
+  writeDB({ spending: [], students: [], settings: { baseCurrency: 'USD', rates: { USD: 1, THB: 35, RUB: 90, USDT: 1 } } });
 }
+
+// ---------- EXCHANGE RATES AUTO-FETCHER ----------
+async function updateExchangeRates() {
+  try {
+    console.log('Fetching latest exchange rates...');
+    const res = await fetch('https://api.exchangerate-api.com/v4/latest/USD');
+    if (!res.ok) throw new Error('Failed to fetch rates');
+    const data = await res.json();
+    
+    if (data && data.rates) {
+      const db = readDB();
+      db.settings.rates = {
+        USD: 1,
+        THB: data.rates.THB || db.settings.rates.THB || 35,
+        RUB: data.rates.RUB || db.settings.rates.RUB || 90,
+        USDT: 1 // pegged for simplicity
+      };
+      writeDB(db);
+      console.log('Successfully updated exchange rates:', db.settings.rates);
+    }
+  } catch (error) {
+    console.error('Error updating exchange rates:', error.message);
+  }
+}
+
+// Fetch rates on startup and every 12 hours
+updateExchangeRates();
+setInterval(updateExchangeRates, 12 * 60 * 60 * 1000);
 
 // ---------- SPENDING ENDPOINTS ----------
 
@@ -185,6 +215,20 @@ app.post('/api/assets', (req, res) => {
   db.assets = req.body;
   writeDB(db);
   res.json(db.assets);
+});
+
+// ---------- SETTINGS ENDPOINTS ----------
+
+app.get('/api/settings', (req, res) => {
+  const db = readDB();
+  res.json(db.settings);
+});
+
+app.put('/api/settings', (req, res) => {
+  const db = readDB();
+  db.settings = { ...db.settings, ...req.body };
+  writeDB(db);
+  res.json(db.settings);
 });
 
 // ---------- ML ENDPOINTS ----------

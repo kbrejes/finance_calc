@@ -1,11 +1,15 @@
-const CURRENCY = '฿';
-const WEEKS_PER_MONTH = 4.33;
-
-export const EXCHANGE_RATES = {
-  USDT: 36,
-  USD: 35,
-  THB: 1
+export let globalSettings = {
+  baseCurrency: 'USD',
+  rates: { USD: 1, THB: 35, RUB: 90, USDT: 1 }
 };
+
+export function updateGlobalSettings(settings) {
+  if (settings) {
+    globalSettings = { ...globalSettings, ...settings };
+  }
+}
+
+const WEEKS_PER_MONTH = 4.33;
 
 export function formatNum(num) {
   if (num === undefined || num === null) return '0';
@@ -13,6 +17,31 @@ export function formatNum(num) {
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   });
+}
+
+export function formatMoney(amount, currency = globalSettings.baseCurrency) {
+  if (amount === undefined || amount === null) return '';
+  const symbols = {
+    USD: '$',
+    USDT: '₮',
+    THB: '฿',
+    RUB: '₽'
+  };
+  const sym = symbols[currency] || currency + ' ';
+  return `${sym}${formatNum(amount)}`;
+}
+
+export function convertToBase(amount, fromCurrency) {
+  if (!amount) return 0;
+  const currency = fromCurrency || 'THB';
+  if (currency === globalSettings.baseCurrency) return amount;
+  
+  // Rates are relative to 1 USD. e.g. THB: 35 means 1 USD = 35 THB.
+  const rateToUSD = globalSettings.rates[currency] || 1;
+  const amountInUSD = amount / rateToUSD;
+  
+  const baseRate = globalSettings.rates[globalSettings.baseCurrency] || 1;
+  return amountInUSD * baseRate;
 }
 
 export function getCalculatedSpendingMetrics(item) {
@@ -57,7 +86,7 @@ export function getCalculatedSpendingMetrics(item) {
   let totalCost = 0;
   let entryCount = item.purchaseDates.length;
   for (const p of item.purchaseDates) {
-    totalCost += (p.cost || 0);
+    totalCost += convertToBase(p.cost || 0, p.currency);
   }
   
   let calcMonthlyCost = totalCost;
@@ -148,8 +177,9 @@ export function calculateDashboardStats({ students, spending, assets, currentMon
       const d = new Date(payment.date);
       if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
         const day = d.getDate() - 1;
-        dailyIncome[day] += payment.amount || 0;
-        dailyItems[day].earnings.push({ name: student.name, amount: payment.amount });
+        const convertedAmount = convertToBase(payment.amount || 0, student.currency);
+        dailyIncome[day] += convertedAmount;
+        dailyItems[day].earnings.push({ name: student.name, amount: convertedAmount, rawAmount: payment.amount, currency: student.currency });
       }
     });
   });
@@ -159,9 +189,9 @@ export function calculateDashboardStats({ students, spending, assets, currentMon
       const d = new Date(dateEntry.date);
       if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
         const day = d.getDate() - 1;
-        const cost = dateEntry.cost || 0;
-        dailySpending[day] += cost;
-        dailyItems[day].spendings.push({ name: item.className, amount: cost });
+        const convertedCost = convertToBase(dateEntry.cost || 0, dateEntry.currency);
+        dailySpending[day] += convertedCost;
+        dailyItems[day].spendings.push({ name: item.className, amount: convertedCost, rawAmount: dateEntry.cost, currency: dateEntry.currency });
       }
     });
   });
@@ -182,8 +212,7 @@ export function calculateDashboardStats({ students, spending, assets, currentMon
 
   // Calculate liquid capital FIRST so we can use it as the income baseline
   const totalLiquidCapital = (assets?.financial || []).reduce((sum, acc) => {
-    const multiplier = EXCHANGE_RATES[acc.currency] || 1;
-    return sum + ((acc.value || 0) * multiplier);
+    return sum + convertToBase(acc.amount || 0, acc.currency);
   }, 0);
 
   // We want the green line's value on "Today" to exactly equal totalLiquidCapital.
@@ -257,7 +286,9 @@ export function calculateDashboardStats({ students, spending, assets, currentMon
           if (targetIndex < timelineLength) {
             chartDailyItems[targetIndex].projected.push({
               name: pred.className,
-              amount: pred.predictedNextAmount
+              amount: convertToBase(pred.predictedNextAmount, pred.currency),
+              rawAmount: pred.predictedNextAmount,
+              currency: pred.currency
             });
           }
         }
@@ -294,7 +325,9 @@ export function calculateDashboardStats({ students, spending, assets, currentMon
             }
             chartDailyItems[targetIndex].projectedIncome.push({
               name: pred.name,
-              amount: pred.predictedNextAmount
+              amount: convertToBase(pred.predictedNextAmount, pred.currency),
+              rawAmount: pred.predictedNextAmount,
+              currency: pred.currency
             });
           }
         }

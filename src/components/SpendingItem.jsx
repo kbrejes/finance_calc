@@ -8,7 +8,7 @@ import {
   User,
   MoreHorizontal,
 } from 'lucide-react'
-import { getCalculatedSpendingMetrics, formatNum } from '../lib/financeUtils'
+import { getCalculatedSpendingMetrics, formatNum, formatMoney } from '../lib/financeUtils'
 
 const CATEGORY_ICONS = {
   Housing: Home,
@@ -55,7 +55,7 @@ export default function SpendingItem({
         <div className="font-medium text-foreground">
           {item.className}
           <span className="text-muted-foreground font-normal text-sm">
-            , ฿{formatNum(calcMonthlyCost)}
+            , {formatMoney(calcMonthlyCost)}
             {hasData && <span className="ml-1 text-[8px] opacity-50 font-bold" title="Calculated from history">●</span>}
           </span>
         </div>

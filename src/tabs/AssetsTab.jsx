@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Plus, Trash2, ShieldCheck, Wallet, Globe, Instagram, Youtube, Send, Mail, FileText, ChevronDown } from 'lucide-react'
 import * as api from '../lib/api'
-import { formatNum } from '../lib/financeUtils'
+import { formatNum, convertToBase, formatMoney } from '../lib/financeUtils'
 
 const DIGITAL_ICONS = {
   YouTube: Youtube,
@@ -138,8 +138,7 @@ export default function AssetsTab() {
   // Summaries
   const financialList = assets.financial || []
   const totalFinancial = financialList.reduce((sum, item) => {
-    const multiplier = item.currency === 'USDT' ? 36 : (item.currency === 'USD' ? 35 : 1)
-    return sum + ((item.value || 0) * multiplier)
+    return sum + convertToBase(item.value || 0, item.currency)
   }, 0)
 
   const physicalList = assets.physical || []
@@ -194,7 +193,7 @@ export default function AssetsTab() {
               </div>
               <div>
                 <h3 className="text-sm font-black uppercase tracking-widest text-foreground/80">Liquid Capital</h3>
-                <div className="text-[10px] font-bold text-primary/60 mt-0.5">Total: ฿{formatNum(totalFinancial)}</div>
+                <div className="text-[10px] font-bold text-primary/60 mt-0.5">Total: {formatMoney(totalFinancial)}</div>
               </div>
             </div>
             <button onClick={() => addItem('financial')} className="p-1.5 rounded-full hover:bg-muted text-muted-foreground/40 hover:text-primary transition-all opacity-0 group-hover/section:opacity-100">

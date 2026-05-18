@@ -77,7 +77,8 @@ export async function generateSpendingPredictions(spendingData) {
       predictedNextDate: nextDate.toISOString().split('T')[0],
       predictedDaysUntilNext: Math.round(predictedDaysUntilNext),
       predictedNextAmount: Math.round(predictedNextAmount),
-      confidenceScore: 'Moderate'
+      confidenceScore: 'Moderate',
+      currency: item.currency
     };
   });
 
@@ -143,7 +144,8 @@ export async function generateIncomePredictions(studentsData) {
       predictedNextDate: nextDate.toISOString().split('T')[0],
       predictedDaysUntilNext: Math.round(predictedDaysUntilNext),
       predictedNextAmount: Math.round(predictedNextAmount),
-      confidenceScore: 'Moderate'
+      confidenceScore: 'Moderate',
+      currency: student.currency
     };
   });
 

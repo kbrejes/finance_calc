@@ -34,6 +34,7 @@ export default function EarningsTab() {
         name: formData.name,
         price: parseFloat(formData.price),
         status: formData.status,
+        currency: formData.currency,
       }
       const result = await api.updateStudent(editingStudent.id, updatedData)
       if (result) {
@@ -44,6 +45,7 @@ export default function EarningsTab() {
         name: formData.name,
         price: parseFloat(formData.price),
         status: formData.status,
+        currency: formData.currency,
         attendanceDates: [],
         payments: [],
         adjustments: []

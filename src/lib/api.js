@@ -152,6 +152,19 @@ export async function saveAssets(assets) {
   return response.json();
 }
 
+// ============ SETTINGS ENDPOINTS ============
+
+export async function fetchSettings() {
+  try {
+    const response = await fetch(`${API_BASE}/settings`);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to fetch settings:', error);
+    return { baseCurrency: 'USD', rates: { USD: 1, THB: 35, RUB: 90, USDT: 1 } };
+  }
+}
+
 // ============ ML ENDPOINTS ============
 
 export async function fetchMLSpendingPredictions() {
