@@ -5,6 +5,7 @@ import StudentModal from '../components/StudentModal'
 import StudentCard from '../components/StudentCard'
 import CalendarModal from '../components/CalendarModal'
 import * as api from '../lib/api'
+import { convertBetween } from '../lib/financeUtils'
 
 export default function EarningsTab() {
   const [students, setStudents] = useState([])
@@ -76,7 +77,7 @@ export default function EarningsTab() {
     }
   }
 
-  const handleUpdatePayments = async (payments, newIncomeAmount = 0, accountId = 'none') => {
+  const handleUpdatePayments = async (payments, newIncomeAmount = 0, accountId = 'none', newIncomeCurrency = 'THB') => {
     const result = await api.updateStudent(selectedStudent.id, { ...selectedStudent, payments })
     if (result) {
       const updatedStudent = { ...selectedStudent, payments }
@@ -88,7 +89,7 @@ export default function EarningsTab() {
       const updatedAssets = {
         ...assets,
         financial: assets.financial.map(a => 
-          a.id === accountId ? { ...a, amount: Number(a.amount || 0) + newIncomeAmount } : a
+          a.id === accountId ? { ...a, amount: Number(a.amount || 0) + convertBetween(newIncomeAmount, newIncomeCurrency, a.currency || 'USD') } : a
         )
       }
       const savedAssets = await api.saveAssets(updatedAssets)

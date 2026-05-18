@@ -44,11 +44,22 @@ export default function CalendarModal({
   const [isPaying, setIsPaying] = useState(false)
   const [paymentAmount, setPaymentAmount] = useState('')
   const [paymentAccount, setPaymentAccount] = useState('none')
+  const [paymentCurrency, setPaymentCurrency] = useState('USD')
 
   // Stats specific state
   const [isAdjusting, setIsAdjusting] = useState(false)
   const [adjAmount, setAdjAmount] = useState('')
   const [adjComment, setAdjComment] = useState('')
+
+  const getSymbol = (currency) => {
+    const symbols = {
+      USD: '$',
+      USDT: '₮',
+      THB: '฿',
+      RUB: '₽'
+    }
+    return symbols[currency] || currency + ' '
+  }
 
   if (!student) return null
 
@@ -79,10 +90,10 @@ export default function CalendarModal({
     e.preventDefault()
     const amount = parseFloat(paymentAmount) || 0
     const newPayments = payments.filter(p => p.date !== selectedDateStr)
-    if (amount > 0) newPayments.push({ date: selectedDateStr, amount })
+    if (amount > 0) newPayments.push({ date: selectedDateStr, amount, currency: paymentCurrency })
     
-    // Pass payments array, new amount, and selected account ID
-    onUpdatePayments(newPayments, amount, paymentAccount)
+    // Pass payments array, new amount, selected account ID, and currency
+    onUpdatePayments(newPayments, amount, paymentAccount, paymentCurrency)
     setIsPaying(false)
   }
 
@@ -323,6 +334,8 @@ export default function CalendarModal({
                           onClick={() => {
                             setPaymentAmount(paymentMap[selectedDateStr] || student.price || '')
                             setPaymentAccount('none')
+                            const existingPayment = payments.find(p => p.date === selectedDateStr)
+                            setPaymentCurrency(existingPayment?.currency || student.currency || 'USD')
                             setIsPaying(true)
                           }}
                           className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${
@@ -332,7 +345,12 @@ export default function CalendarModal({
                           }`}
                         >
                           <DollarSign className="h-3 w-3" />
-                          {paymentMap[selectedDateStr] > 0 ? `Paid ${formatMoney(paymentMap[selectedDateStr], student.currency)}` : 'Add Payment'}
+                          {paymentMap[selectedDateStr] > 0 ? (
+                            (() => {
+                              const p = payments.find(p => p.date === selectedDateStr);
+                              return `Paid ${formatMoney(p?.amount || 0, p?.currency || student.currency)}`;
+                            })()
+                          ) : 'Add Payment'}
                         </button>
                       )}
                     </div>
@@ -342,7 +360,7 @@ export default function CalendarModal({
                         <div className="flex items-center gap-2">
                           <span className="text-[10px] font-black uppercase text-muted-foreground/60 w-16">Amount</span>
                           <div className="relative flex-1">
-                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-foreground/40 font-bold font-mono">฿</span>
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-foreground/40 font-bold font-mono">{getSymbol(paymentCurrency)}</span>
                             <input
                               type="number"
                               required
@@ -352,9 +370,22 @@ export default function CalendarModal({
                             />
                           </div>
                         </div>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-black uppercase text-muted-foreground/60 w-16">Balance</span>
-                          <div className="flex-1">
+                        <div className="grid grid-cols-2 gap-2">
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">Currency</span>
+                            <Select value={paymentCurrency} onValueChange={setPaymentCurrency}>
+                              <SelectTrigger className="h-8 text-[10px] font-bold bg-background border-border">
+                                <SelectValue placeholder="Currency" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {Object.keys(globalSettings.rates).map(curr => (
+                                  <SelectItem key={curr} value={curr} className="text-[10px] font-bold">{curr}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          <div className="flex flex-col gap-1">
+                            <span className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">Account</span>
                             <Select value={paymentAccount} onValueChange={setPaymentAccount}>
                               <SelectTrigger className="h-8 text-[10px] font-bold bg-background border-border">
                                 <SelectValue placeholder="Select account" />

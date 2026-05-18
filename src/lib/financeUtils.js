@@ -44,6 +44,19 @@ export function convertToBase(amount, fromCurrency) {
   return amountInUSD * baseRate;
 }
 
+export function convertBetween(amount, fromCurrency, toCurrency) {
+  if (!amount) return 0;
+  const from = fromCurrency || 'THB';
+  const to = toCurrency || 'THB';
+  if (from === to) return amount;
+  
+  const rateFrom = globalSettings.rates[from] || 1;
+  const amountInUSD = amount / rateFrom;
+  
+  const rateTo = globalSettings.rates[to] || 1;
+  return amountInUSD * rateTo;
+}
+
 export function getCalculatedSpendingMetrics(item) {
   if (!item.purchaseDates || item.purchaseDates.length === 0) {
     return {
@@ -117,7 +130,7 @@ export function getCalculatedStudentMetrics(student) {
   const totalCost = attendanceCount * lessonPrice;
   
   const payments = student.payments || [];
-  const totalPaid = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+  const totalPaid = payments.reduce((sum, p) => sum + convertBetween(p.amount || 0, p.currency || student.currency, student.currency), 0);
   
   const adjustments = student.adjustments || [];
   const totalAdjustments = adjustments.reduce((sum, a) => sum + (a.amount || 0), 0);
@@ -177,9 +190,9 @@ export function calculateDashboardStats({ students, spending, assets, currentMon
       const d = new Date(payment.date);
       if (d.getMonth() === currentMonth && d.getFullYear() === currentYear) {
         const day = d.getDate() - 1;
-        const convertedAmount = convertToBase(payment.amount || 0, student.currency);
+        const convertedAmount = convertToBase(payment.amount || 0, payment.currency || student.currency);
         dailyIncome[day] += convertedAmount;
-        dailyItems[day].earnings.push({ name: student.name, amount: convertedAmount, rawAmount: payment.amount, currency: student.currency });
+        dailyItems[day].earnings.push({ name: student.name, amount: convertedAmount, rawAmount: payment.amount, currency: payment.currency || student.currency });
       }
     });
   });
