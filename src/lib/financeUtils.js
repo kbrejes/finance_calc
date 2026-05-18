@@ -225,7 +225,7 @@ export function calculateDashboardStats({ students, spending, assets, currentMon
 
   // Calculate liquid capital FIRST so we can use it as the income baseline
   const totalLiquidCapital = (assets?.financial || []).reduce((sum, acc) => {
-    return sum + convertToBase(acc.amount || 0, acc.currency);
+    return sum + convertToBase(acc.value || 0, acc.currency);
   }, 0);
 
   // We want the green line's value on "Today" to exactly equal totalLiquidCapital.

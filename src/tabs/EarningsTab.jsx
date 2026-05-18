@@ -89,7 +89,7 @@ export default function EarningsTab() {
       const updatedAssets = {
         ...assets,
         financial: assets.financial.map(a => 
-          a.id === accountId ? { ...a, amount: Number(a.amount || 0) + convertBetween(newIncomeAmount, newIncomeCurrency, a.currency || 'USD') } : a
+          a.id === accountId ? { ...a, value: Number(a.value || 0) + convertBetween(newIncomeAmount, newIncomeCurrency, a.currency || 'USD') } : a
         )
       }
       const savedAssets = await api.saveAssets(updatedAssets)
