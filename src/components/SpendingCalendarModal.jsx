@@ -21,6 +21,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
   const [selectedDate, setSelectedDate] = useState(null)
   const [nameInput, setNameInput] = useState('')
   const [costInput, setCostInput] = useState('')
+  const [quantityInput, setQuantityInput] = useState('1')
   const [accountInput, setAccountInput] = useState('none')
   const [editingId, setEditingId] = useState(null)
   const [drafts, setDrafts] = useState({}) // { [date]: { name, cost, account } }
@@ -48,7 +49,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     if (selectedDate && !editingId) {
       setDrafts(prev => ({
         ...prev,
-        [selectedDate]: { name: nameInput, cost: costInput, account: accountInput }
+        [selectedDate]: { name: nameInput, cost: costInput, quantity: quantityInput, account: accountInput }
       }))
     }
 
@@ -62,11 +63,13 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     if (draft) {
       setNameInput(draft.name)
       setCostInput(draft.cost)
+      setQuantityInput(draft.quantity || '1')
       setAccountInput(draft.account || 'none')
     } else {
       setNameInput('')
       const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
       setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
+      setQuantityInput('1')
       setAccountInput('none')
     }
   }
@@ -79,6 +82,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
       date: selectedDate, 
       name: nameInput.trim() || item.className,
       cost: parseFloat(costInput),
+      quantity: parseFloat(quantityInput) || 1,
       account: accountInput
     }
     
@@ -104,12 +108,14 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     setNameInput('')
     const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
     setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
+    setQuantityInput('1')
   }
 
   const handleEditEntry = (entry) => {
     setEditingId(entry.id)
     setNameInput(entry.name || '')
     setCostInput((entry.cost || 0).toString())
+    setQuantityInput((entry.quantity || 1).toString())
     setAccountInput(entry.account || 'none')
     setIsFormOpen(true)
   }
@@ -124,6 +130,7 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
       setEditingId(null)
       setNameInput('')
       setCostInput('')
+      setQuantityInput('1')
     }
   }
 
@@ -155,6 +162,8 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
   const dayEntries = selectedDate 
     ? (item.purchaseDates || []).filter(p => p.date === selectedDate)
     : []
+
+  const formatNum = (num) => num.toLocaleString(undefined, { maximumFractionDigits: 2 })
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -215,6 +224,8 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                         ? 'bg-transparent border-transparent'
                         : isFuture
                         ? 'text-muted-foreground/20 cursor-not-allowed'
+                        : isMarked && isToday
+                        ? 'bg-gradient-to-br from-[#334155] via-[#1E293B] to-[#020617] text-white ring-2 ring-primary/50 shadow-[0_0_15px_rgba(129,140,248,0.4)] border border-primary/50 z-10'
                         : isMarked
                         ? 'bg-gradient-to-br from-[#475569] via-[#334155] to-[#0F172A] text-white shadow-sm border border-slate-600/50'
                         : isCurrentlySelected
@@ -257,19 +268,22 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
 
                   return (
                     <div key={entry.id || `entry-${globalIdx}`} className="group flex items-center justify-between p-2.5 rounded-lg bg-muted/20 border border-border/30 hover:border-border/60 transition-colors">
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-bold text-foreground/80">{entry.name || item.className}</span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[10px] font-medium text-white/50">฿{(entry.cost || 0).toLocaleString()}</span>
-                          <span className="text-[8px] font-black text-primary/60 uppercase">
-                            {(() => {
-                              const accId = entry.account || 'none'
-                              const acc = (accounts || []).find(a => a.id === accId || a.name === accId)
-                              return acc ? acc.name : (accId === 'none' ? 'Manual' : accId)
-                            })()}
-                          </span>
+                      <div className="flex-1 min-w-0">
+                        <div className="text-xs font-black text-foreground truncate">{entry.name || item.className}</div>
+                        <div className="text-[10px] text-muted-foreground mt-0.5 truncate flex items-center gap-1.5">
+                          {entry.account && entry.account !== 'none' && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-muted/30 font-medium">
+                              {accounts?.find(a => a.id === entry.account || a.name === entry.account)?.name || 'Account'}
+                            </span>
+                          )}
+                          {entry.quantity && entry.quantity !== 1 && (
+                            <span className="text-[9px] font-medium opacity-70">
+                              {entry.quantity} {item.unitType === 'weight' ? 'kg/g' : item.unitType === 'volume' ? 'L/ml' : item.unitType === 'length' ? 'm/cm' : 'pcs'}
+                            </span>
+                          )}
                         </div>
                       </div>
+                      <div className="text-xs font-black text-foreground tabular-nums">฿{formatNum(entry.cost)}</div>
                       <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                         <button 
                           onClick={() => handleEditEntry(entry)}
@@ -326,7 +340,21 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                       />
                     </div>
 
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-[1fr_2fr] gap-3">
+                      <div className="space-y-1.5">
+                        <label className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">
+                          Units ({item.unitType === 'weight' ? 'kg/g' : item.unitType === 'volume' ? 'L/ml' : item.unitType === 'length' ? 'm/cm' : 'pcs'})
+                        </label>
+                        <Input
+                          type="number"
+                          placeholder="1"
+                          step="any"
+                          value={quantityInput}
+                          onChange={(e) => setQuantityInput(e.target.value)}
+                          className="h-10 text-xs font-black bg-muted/20 border-border/20 focus:border-primary/50 transition-all"
+                        />
+                      </div>
+
                       <div className="space-y-1.5">
                         <label className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">Amount (฿)</label>
                         <div className="relative">
@@ -338,10 +366,10 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                             onChange={(e) => setCostInput(e.target.value)}
                             onKeyDown={(e) => e.key === 'Enter' && handleSaveEntry()}
                             className="pl-7 h-10 text-xs font-black bg-muted/20 border-border/20 focus:border-primary/50 transition-all"
-                            autoFocus
                           />
                         </div>
                       </div>
+                    </div>
 
                       <div className="space-y-1.5">
                         <label className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">Account</label>
@@ -359,7 +387,6 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                           </SelectContent>
                         </Select>
                       </div>
-                    </div>
 
                     <div className="flex gap-2 pt-2">
                       <button

@@ -133,6 +133,8 @@ export default function CalendarModal({
                 ? 'bg-transparent border-transparent'
                 : isFuture
                 ? 'text-muted-foreground/20 cursor-not-allowed'
+                : isAttended && isToday
+                ? 'bg-gradient-to-br from-[#334155] via-[#1E293B] to-[#020617] text-white ring-2 ring-primary/50 shadow-[0_0_15px_rgba(129,140,248,0.4)] border border-primary/50 z-10'
                 : isAttended
                 ? 'bg-gradient-to-br from-[#475569] via-[#334155] to-[#0F172A] text-white shadow-sm border border-slate-600/50'
                 : isCurrentlySelected

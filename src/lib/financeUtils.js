@@ -36,7 +36,7 @@ export function getCalculatedSpendingMetrics(item) {
   let daysUntilNext = null;
   let nextDate = null;
 
-  if (uniqueDates.length >= 2) {
+  if (uniqueDates.length >= 3) {
     const firstDate = uniqueDates[0];
     const lastDate = uniqueDates[uniqueDates.length - 1];
     const totalDaysSpan = Math.max(1, Math.floor((lastDate - firstDate) / (1000 * 60 * 60 * 24)));
@@ -61,7 +61,7 @@ export function getCalculatedSpendingMetrics(item) {
   
   let calcMonthlyCost = totalCost;
   
-  if (uniqueDates.length >= 2 && avgDays > 0) {
+  if (uniqueDates.length >= 3 && avgDays > 0) {
     const avgCostPerEntry = totalCost / entryCount;
     // Projection: (Average Cost per Purchase) * (Expected Purchases per Month)
     const expectedEntriesPerMonth = 30.44 / avgDays;
@@ -72,7 +72,7 @@ export function getCalculatedSpendingMetrics(item) {
   }
 
   return {
-    hasData: uniqueDates.length >= 2,
+    hasData: uniqueDates.length >= 3,
     avgDays,
     nextDate,
     daysUntilNext,

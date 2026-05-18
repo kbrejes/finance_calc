@@ -312,10 +312,11 @@ export default function DashboardTab() {
           {daysArray.map(day => {
             const dayData = stats.dailyItems[day - 1]
             const isToday = new Date().toDateString() === new Date(currentYear, currentMonth, day).toDateString()
+            const hasRecords = dayData.spendings.length > 0 || dayData.earnings.length > 0;
             
             return (
-              <div key={day} className={`min-h-[100px] rounded-xl border p-2 transition-all relative flex flex-col gap-1 overflow-hidden group ${isToday ? 'border-primary/50 bg-primary/5' : 'border-border/20 bg-muted/5 hover:border-border/60'}`}>
-                <span className={`text-[10px] font-black shrink-0 ${isToday ? 'text-primary' : 'text-muted-foreground/40'}`}>{day}</span>
+              <div key={day} className={`min-h-[100px] rounded-xl border p-2 transition-all relative flex flex-col gap-1 overflow-hidden group ${isToday ? `border-primary/50 bg-primary/5 ${hasRecords ? 'ring-2 ring-primary/50 shadow-[0_0_15px_rgba(129,140,248,0.3)] z-10' : ''}` : 'border-border/20 bg-muted/5 hover:border-border/60'}`}>
+                <span className={`text-[10px] font-black shrink-0 ${isToday ? 'text-primary drop-shadow-[0_0_5px_rgba(129,140,248,0.8)]' : 'text-muted-foreground/40'}`}>{day}</span>
                 
                 <div className="flex-1 overflow-y-auto space-y-1 custom-scrollbar pr-0.5">
                   {dayData.earnings.map((e, idx) => (

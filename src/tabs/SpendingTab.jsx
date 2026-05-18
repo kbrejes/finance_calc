@@ -46,6 +46,7 @@ export default function SpendingTab() {
         className: formData.className.trim(),
         instanceName: formData.className.trim(),
         isEssential: formData.essential === 'true',
+        unitType: formData.unitType || 'count',
       }
       const result = await api.updateSpending(editingItem.id, updatedItem)
       if (result) {
@@ -58,6 +59,7 @@ export default function SpendingTab() {
         className: formData.className.trim(),
         instanceName: formData.className.trim(),
         isEssential: formData.essential === 'true',
+        unitType: formData.unitType || 'count',
         pricePerUnit: 0,
         units: 1,
         purchaseDates: [],

@@ -23,6 +23,7 @@ export default function SpendingModal({ open, onOpenChange, onSubmit, initialDat
     category: 'Housing',
     essential: 'true',
     className: '',
+    unitType: 'count',
   })
 
   useEffect(() => {
@@ -31,12 +32,14 @@ export default function SpendingModal({ open, onOpenChange, onSubmit, initialDat
         category: initialData.category || 'Housing',
         essential: initialData.isEssential ? 'true' : 'false',
         className: initialData.className || '',
+        unitType: initialData.unitType || 'count',
       })
     } else {
       setFormData({
         category: 'Housing',
         essential: 'true',
         className: '',
+        unitType: 'count',
       })
     }
   }, [initialData, open])
@@ -104,16 +107,34 @@ export default function SpendingModal({ open, onOpenChange, onSubmit, initialDat
 
 
 
-            {/* Class Name */}
-            <div className="space-y-2">
-              <Label htmlFor="className" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Item Name</Label>
-              <Input
-                id="className"
-                placeholder="e.g., Yoghurt"
-                value={formData.className}
-                onChange={(e) => handleChange('className', e.target.value)}
-                required
-              />
+            {/* Class Name and Unit Type */}
+            <div className="grid grid-cols-[2fr_1fr] gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="className" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Item Name</Label>
+                <Input
+                  id="className"
+                  placeholder="e.g., Yoghurt"
+                  value={formData.className}
+                  onChange={(e) => handleChange('className', e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="unitType" className="text-[10px] uppercase tracking-wider text-muted-foreground/50">Unit Type</Label>
+                <Select value={formData.unitType} onValueChange={(value) => handleChange('unitType', value)}>
+                  <SelectTrigger id="unitType">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="count">Count (pcs)</SelectItem>
+                    <SelectItem value="weight">Weight (kg/g)</SelectItem>
+                    <SelectItem value="volume">Volume (L/ml)</SelectItem>
+                    <SelectItem value="length">Length (m/cm)</SelectItem>
+                    <SelectItem value="other">Other</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </div>
 
