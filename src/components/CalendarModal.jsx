@@ -18,7 +18,7 @@ import {
   SelectValue,
 } from './ui/select'
 import * as DialogPrimitive from "@radix-ui/react-dialog"
-import { getCalculatedStudentMetrics, formatNum, formatMoney } from '../lib/financeUtils'
+import { getCalculatedStudentMetrics, formatNum, formatMoney, globalSettings } from '../lib/financeUtils'
 
 const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
 const MONTHS = [
