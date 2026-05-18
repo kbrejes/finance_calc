@@ -24,8 +24,13 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
   const [quantityInput, setQuantityInput] = useState('1')
   const [accountInput, setAccountInput] = useState('none')
   const [editingId, setEditingId] = useState(null)
-  const [drafts, setDrafts] = useState({}) // { [date]: { name, cost, account } }
+  const [drafts, setDrafts] = useState({})
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [billingDateInput, setBillingDateInput] = useState('')
+  const [showEarlyPayment, setShowEarlyPayment] = useState(false)
+
+  const today = new Date()
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth()+1).padStart(2,'0')}-${String(today.getDate()).padStart(2,'0')}`
 
   const getDaysInMonth = (date) => {
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate()
@@ -42,36 +47,20 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
   const handleDayClick = (day) => {
     const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day)
     
-    // 1. If clicking the same date, do nothing (preserves current typing)
+    // If clicking the same date, do nothing
     if (dateStr === selectedDate) return
 
-    // 2. Save current draft before switching (if not editing an existing entry)
-    if (selectedDate && !editingId) {
-      setDrafts(prev => ({
-        ...prev,
-        [selectedDate]: { name: nameInput, cost: costInput, quantity: quantityInput, account: accountInput }
-      }))
-    }
-
-    // 3. Switch to new date
+    // Switch to new date — just show entries, don't auto-open form
     setSelectedDate(dateStr)
     setEditingId(null)
-    setIsFormOpen(true)
-
-    // 4. Load draft for the new date if it exists
-    const draft = drafts[dateStr]
-    if (draft) {
-      setNameInput(draft.name)
-      setCostInput(draft.cost)
-      setQuantityInput(draft.quantity || '1')
-      setAccountInput(draft.account || 'none')
-    } else {
-      setNameInput('')
-      const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
-      setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
-      setQuantityInput('1')
-      setAccountInput('none')
-    }
+    setIsFormOpen(false)
+    setNameInput('')
+    const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
+    setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
+    setQuantityInput('1')
+    setAccountInput('none')
+    setBillingDateInput('')
+    setShowEarlyPayment(false)
   }
 
   const handleSaveEntry = () => {
@@ -83,7 +72,8 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
       name: nameInput.trim() || item.className,
       cost: parseFloat(costInput),
       quantity: parseFloat(quantityInput) || 1,
-      account: accountInput
+      account: accountInput,
+      ...(billingDateInput && billingDateInput !== selectedDate ? { billingDate: billingDateInput } : {})
     }
     
     let updated
@@ -109,6 +99,8 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
     setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
     setQuantityInput('1')
+    setBillingDateInput('')
+    setShowEarlyPayment(false)
   }
 
   const handleEditEntry = (entry) => {
@@ -117,6 +109,8 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
     setCostInput((entry.cost || 0).toString())
     setQuantityInput((entry.quantity || 1).toString())
     setAccountInput(entry.account || 'none')
+    setBillingDateInput(entry.billingDate || '')
+    setShowEarlyPayment(!!entry.billingDate)
     setIsFormOpen(true)
   }
 
@@ -131,6 +125,8 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
       setNameInput('')
       setCostInput('')
       setQuantityInput('1')
+      setBillingDateInput('')
+      setShowEarlyPayment(false)
     }
   }
 
@@ -281,6 +277,11 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                               {entry.quantity} {item.unitType === 'weight' ? 'kg/g' : item.unitType === 'volume' ? 'L/ml' : item.unitType === 'length' ? 'm/cm' : 'pcs'}
                             </span>
                           )}
+                          {entry.billingDate && entry.billingDate !== entry.date && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded-sm bg-amber-500/20 text-amber-400 font-bold">
+                              covers {new Date(entry.billingDate + 'T12:00:00').toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="text-xs font-black text-foreground tabular-nums">฿{formatNum(entry.cost)}</div>
@@ -309,6 +310,8 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                   const defaultPrice = (item?.pricePerUnit || 0) * (item?.units || 1)
                   setCostInput(defaultPrice > 0 ? defaultPrice.toString() : '')
                   setAccountInput('none')
+                  setBillingDateInput('')
+                  setShowEarlyPayment(false)
                   setIsFormOpen(true)
                 }}
                 className="w-full py-3 rounded-xl border border-dashed border-border/40 text-[10px] font-black uppercase tracking-widest text-muted-foreground/40 hover:bg-primary/5 hover:text-primary hover:border-primary/40 transition-all group"
@@ -387,6 +390,38 @@ export default function SpendingCalendarModal({ open, onOpenChange, item, onUpda
                           </SelectContent>
                         </Select>
                       </div>
+
+                      {/* Early payment toggle */}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setShowEarlyPayment(p => !p)
+                          if (showEarlyPayment) setBillingDateInput('')
+                        }}
+                        className="flex items-center gap-1.5 text-[9px] font-bold text-muted-foreground/40 hover:text-amber-400/70 transition-colors mt-1"
+                      >
+                        <span className={`w-3 h-3 rounded-sm border flex items-center justify-center transition-colors ${showEarlyPayment ? 'bg-amber-500/30 border-amber-400/50' : 'border-border/40'}`}>
+                          {showEarlyPayment && <span className="text-amber-400 text-[8px] leading-none">✓</span>}
+                        </span>
+                        Paid early — due on a future date
+                      </button>
+
+                      {showEarlyPayment && (
+                        <div className="space-y-1.5 animate-in slide-in-from-top-1 duration-150">
+                          <label className="text-[9px] font-black uppercase text-muted-foreground/40 ml-1">Due date</label>
+                          <Input
+                            type="date"
+                            value={billingDateInput}
+                            onChange={(e) => setBillingDateInput(e.target.value)}
+                            className="h-10 text-xs font-black bg-amber-500/5 border-amber-400/30 focus:border-amber-400/60 transition-all"
+                          />
+                          {billingDateInput && billingDateInput !== selectedDate && (
+                            <p className="text-[9px] text-amber-400/70 ml-1">
+                              ⚡ Frequency prediction will use this date
+                            </p>
+                          )}
+                        </div>
+                      )}
 
                     <div className="flex gap-2 pt-2">
                       <button

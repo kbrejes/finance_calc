@@ -27,7 +27,8 @@ export function getCalculatedSpendingMetrics(item) {
   const now = new Date();
   
   // 1. Get unique days for frequency calculation
-  const uniqueDateStrings = [...new Set(item.purchaseDates.map(p => p.date))];
+  // Use billingDate if set (for early payments covering a future cycle), otherwise use actual payment date
+  const uniqueDateStrings = [...new Set(item.purchaseDates.map(p => p.billingDate || p.date))];
   const uniqueDates = uniqueDateStrings
     .map(d => new Date(d))
     .sort((a, b) => a - b);
