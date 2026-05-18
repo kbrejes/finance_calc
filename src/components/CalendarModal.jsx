@@ -10,6 +10,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from './ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from './ui/select'
 import * as DialogPrimitive from "@radix-ui/react-dialog"
 import { getCalculatedStudentMetrics, formatNum } from '../lib/financeUtils'
 
@@ -23,14 +30,21 @@ export default function CalendarModal({
   open, 
   onOpenChange, 
   student,
+  accounts,
   onUpdateAttendance, 
   onUpdatePayments,
   onUpdateAdjustments 
 }) {
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [mode, setMode] = useState('attendance') // 'attendance' | 'payments' | 'stats'
+  const [mode, setMode] = useState('calendar') // 'calendar' | 'stats'
+  const [selectedDateStr, setSelectedDateStr] = useState(null)
   const [paymentMap, setPaymentMap] = useState({})
   
+  // Payment specific state
+  const [isPaying, setIsPaying] = useState(false)
+  const [paymentAmount, setPaymentAmount] = useState('')
+  const [paymentAccount, setPaymentAccount] = useState('none')
+
   // Stats specific state
   const [isAdjusting, setIsAdjusting] = useState(false)
   const [adjAmount, setAdjAmount] = useState('')
@@ -57,21 +71,19 @@ export default function CalendarModal({
 
   const handleDayClick = (day) => {
     const dateStr = formatDate(currentDate.getFullYear(), currentDate.getMonth(), day)
-    if (mode === 'attendance') {
-      const newDates = attendanceDates.includes(dateStr)
-        ? attendanceDates.filter(d => d !== dateStr)
-        : [...attendanceDates, dateStr]
-      onUpdateAttendance(newDates)
-    } else if (mode === 'payments') {
-      const currentAmount = paymentMap[dateStr] || 0
-      const val = prompt(`Enter payment for ${dateStr}:`, currentAmount)
-      if (val !== null) {
-        const amount = parseFloat(val.replace(/[^\d.-]/g, '')) || 0
-        const newPayments = payments.filter(p => p.date !== dateStr)
-        if (amount > 0) newPayments.push({ date: dateStr, amount })
-        onUpdatePayments(newPayments)
-      }
-    }
+    setSelectedDateStr(dateStr)
+    setIsPaying(false)
+  }
+
+  const handleSavePayment = (e) => {
+    e.preventDefault()
+    const amount = parseFloat(paymentAmount) || 0
+    const newPayments = payments.filter(p => p.date !== selectedDateStr)
+    if (amount > 0) newPayments.push({ date: selectedDateStr, amount })
+    
+    // Pass payments array, new amount, and selected account ID
+    onUpdatePayments(newPayments, amount, paymentAccount)
+    setIsPaying(false)
   }
 
   const handleAddAdjustment = (e) => {
@@ -114,7 +126,7 @@ export default function CalendarModal({
         const dateStr = day ? formatDate(year, month, day) : ''
         const isAttended = day ? attendanceDates.includes(dateStr) : false
         const paymentAmount = day ? paymentMap[dateStr] : 0
-        const isCurrentlySelected = false // Could implement day selection later if needed
+        const isCurrentlySelected = selectedDateStr === dateStr
         
         const today = new Date()
         today.setHours(0, 0, 0, 0)
@@ -133,14 +145,14 @@ export default function CalendarModal({
                 ? 'bg-transparent border-transparent'
                 : isFuture
                 ? 'text-muted-foreground/20 cursor-not-allowed'
+                : isCurrentlySelected
+                ? 'border-2 border-primary bg-primary/20 text-foreground ring-2 ring-primary/30 shadow-[0_0_15px_rgba(var(--primary),0.3)] z-20 scale-110'
                 : isAttended && isToday
                 ? 'bg-gradient-to-br from-[#334155] via-[#1E293B] to-[#020617] text-white ring-2 ring-primary/50 shadow-[0_0_15px_rgba(129,140,248,0.4)] border border-primary/50 z-10'
                 : isAttended
                 ? 'bg-gradient-to-br from-[#475569] via-[#334155] to-[#0F172A] text-white shadow-sm border border-slate-600/50'
-                : isCurrentlySelected
-                ? 'border-2 border-primary bg-primary/10 text-foreground'
                 : isToday
-                ? 'border-2 border-primary shadow-[0_0_10px_rgba(var(--primary),0.2)] bg-muted/50 text-foreground'
+                ? 'border-2 border-primary/50 shadow-[0_0_10px_rgba(var(--primary),0.1)] bg-muted/50 text-foreground'
                 : 'border border-border/40 text-muted-foreground/60 hover:bg-muted/30 hover:text-foreground'
             }`}
           >
@@ -184,18 +196,11 @@ export default function CalendarModal({
           {/* Mode Toggle */}
           <div className="flex p-1 bg-muted/30 rounded-2xl gap-1">
             <button
-              onClick={() => setMode('attendance')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${mode === 'attendance' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
+              onClick={() => { setMode('calendar'); setSelectedDateStr(null); setIsPaying(false); }}
+              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${mode === 'calendar' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
             >
               <CalendarIcon className="h-3 w-3" />
-              Attendance
-            </button>
-            <button
-              onClick={() => setMode('payments')}
-              className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-[10px] font-black uppercase transition-all ${mode === 'payments' ? 'bg-primary text-primary-foreground shadow-sm' : 'text-white/60 hover:text-white hover:bg-white/5'}`}
-            >
-              <DollarSign className="h-3 w-3" />
-              Payments
+              Calendar
             </button>
             <button
               onClick={() => setMode('stats')}
@@ -289,20 +294,107 @@ export default function CalendarModal({
               </div>
               
               <div className="flex flex-col gap-2 pt-4 border-t border-border">
-                <div className="flex items-center justify-between text-[10px] font-black text-white/40 uppercase tracking-widest">
-                  <span>Legend</span>
-                  <span>{mode === 'attendance' ? 'Attendance Tracking' : 'Income Tracking'}</span>
-                </div>
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(129,140,248,0.5)]" />
-                    <span className="text-[9px] font-black text-white uppercase">Lesson</span>
+                {selectedDateStr ? (
+                  <div className="p-4 rounded-2xl bg-muted/10 border border-border/50 flex flex-col gap-3 animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <div className="text-[10px] font-black uppercase text-muted-foreground text-center tracking-widest flex items-center justify-center gap-2">
+                      <CalendarIcon className="h-3 w-3" />
+                      {new Date(selectedDateStr).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' })}
+                    </div>
+                    <div className="flex gap-2">
+                      <button 
+                        onClick={() => {
+                          const newDates = attendanceDates.includes(selectedDateStr)
+                            ? attendanceDates.filter(d => d !== selectedDateStr)
+                            : [...attendanceDates, selectedDateStr]
+                          onUpdateAttendance(newDates)
+                        }}
+                        className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${
+                          attendanceDates.includes(selectedDateStr) 
+                            ? 'bg-primary text-primary-foreground shadow-lg shadow-primary/20' 
+                            : 'bg-muted/30 border border-border text-foreground hover:bg-muted/50'
+                        }`}
+                      >
+                        <Check className="h-3 w-3" />
+                        {attendanceDates.includes(selectedDateStr) ? 'Attended' : 'Mark Attended'}
+                      </button>
+                      
+                      {!isPaying && (
+                        <button 
+                          onClick={() => {
+                            setPaymentAmount(paymentMap[selectedDateStr] || student.price || '')
+                            setPaymentAccount('none')
+                            setIsPaying(true)
+                          }}
+                          className={`flex-1 py-3 rounded-xl flex items-center justify-center gap-2 text-[10px] font-black uppercase transition-all ${
+                            paymentMap[selectedDateStr] > 0
+                              ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20'
+                              : 'bg-muted/30 border border-border text-foreground hover:bg-muted/50'
+                          }`}
+                        >
+                          <DollarSign className="h-3 w-3" />
+                          {paymentMap[selectedDateStr] > 0 ? `Paid ฿${formatNum(paymentMap[selectedDateStr])}` : 'Add Payment'}
+                        </button>
+                      )}
+                    </div>
+
+                    {isPaying && (
+                      <form onSubmit={handleSavePayment} className="mt-2 space-y-3 p-3 rounded-xl bg-muted/20 border border-border/50 animate-in fade-in slide-in-from-top-2">
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black uppercase text-muted-foreground/60 w-16">Amount</span>
+                          <div className="relative flex-1">
+                            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[10px] text-foreground/40 font-bold font-mono">฿</span>
+                            <input
+                              type="number"
+                              required
+                              value={paymentAmount}
+                              onChange={(e) => setPaymentAmount(e.target.value)}
+                              className="w-full h-8 pl-7 rounded-lg bg-background border border-border text-xs font-bold focus:outline-none focus:border-primary/50"
+                            />
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[10px] font-black uppercase text-muted-foreground/60 w-16">Balance</span>
+                          <div className="flex-1">
+                            <Select value={paymentAccount} onValueChange={setPaymentAccount}>
+                              <SelectTrigger className="h-8 text-[10px] font-bold bg-background border-border">
+                                <SelectValue placeholder="Select account" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {(accounts || []).map(acc => (
+                                  <SelectItem key={acc.id} value={acc.id} className="text-[10px] font-bold">
+                                    {acc.name}
+                                  </SelectItem>
+                                ))}
+                                <SelectItem value="none" className="text-[10px] font-bold text-muted-foreground italic">Do not add to balance</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        </div>
+                        <div className="flex gap-2 pt-2 border-t border-border/30">
+                          <button type="submit" className="flex-1 py-2 rounded-lg bg-emerald-500 text-white text-[10px] font-black uppercase shadow-lg shadow-emerald-500/20 hover:brightness-110">Save Payment</button>
+                          <button type="button" onClick={() => setIsPaying(false)} className="px-4 py-2 rounded-lg bg-muted border border-border text-foreground text-[10px] font-black uppercase hover:bg-muted/80">Cancel</button>
+                        </div>
+                      </form>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                    <span className="text-[9px] font-black text-white uppercase">Payment</span>
-                  </div>
-                </div>
+                ) : (
+                  <>
+                    <div className="flex items-center justify-between text-[10px] font-black text-muted-foreground uppercase tracking-widest mt-2">
+                      <span>Legend</span>
+                      <span>Tap any date to edit</span>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-primary shadow-[0_0_8px_rgba(129,140,248,0.5)]" />
+                        <span className="text-[9px] font-black text-foreground uppercase">Lesson</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
+                        <span className="text-[9px] font-black text-foreground uppercase">Payment</span>
+                      </div>
+                    </div>
+                  </>
+                )}
               </div>
             </div>
           )}

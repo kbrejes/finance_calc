@@ -13,12 +13,18 @@ export default function EarningsTab() {
   const [selectedStudent, setSelectedStudent] = useState(null)
   const [editingStudent, setEditingStudent] = useState(null)
 
+  const [assets, setAssets] = useState({ financial: [] })
+
   useEffect(() => {
-    const loadStudents = async () => {
-      const data = await api.fetchStudents()
-      setStudents(data || [])
+    const loadData = async () => {
+      const [studentsData, assetsData] = await Promise.all([
+        api.fetchStudents(),
+        api.fetchAssets()
+      ])
+      setStudents(studentsData || [])
+      setAssets(assetsData || { financial: [] })
     }
-    loadStudents()
+    loadData()
   }, [])
 
   const handleAddOrUpdateStudent = async (formData) => {
@@ -68,12 +74,23 @@ export default function EarningsTab() {
     }
   }
 
-  const handleUpdatePayments = async (payments) => {
+  const handleUpdatePayments = async (payments, newIncomeAmount = 0, accountId = 'none') => {
     const result = await api.updateStudent(selectedStudent.id, { ...selectedStudent, payments })
     if (result) {
       const updatedStudent = { ...selectedStudent, payments }
       setStudents(students.map(s => s.id === selectedStudent.id ? updatedStudent : s))
       setSelectedStudent(updatedStudent)
+    }
+
+    if (newIncomeAmount > 0 && accountId && accountId !== 'none') {
+      const updatedAssets = {
+        ...assets,
+        financial: assets.financial.map(a => 
+          a.id === accountId ? { ...a, amount: Number(a.amount || 0) + newIncomeAmount } : a
+        )
+      }
+      const savedAssets = await api.saveAssets(updatedAssets)
+      if (savedAssets) setAssets(savedAssets)
     }
   }
 
@@ -141,6 +158,7 @@ export default function EarningsTab() {
           open={calendarModalOpen}
           onOpenChange={setCalendarModalOpen}
           student={selectedStudent}
+          accounts={assets?.financial || []}
           onUpdateAttendance={handleUpdateAttendance}
           onUpdatePayments={handleUpdatePayments}
           onUpdateAdjustments={handleUpdateAdjustments}
