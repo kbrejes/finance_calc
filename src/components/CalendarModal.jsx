@@ -128,7 +128,7 @@ export default function CalendarModal({
             key={`${weekIdx}-${dayIdx}`}
             onClick={() => day && !isFuture && handleDayClick(day)}
             disabled={!day || isFuture}
-            className={`relative h-10 w-10 mx-auto rounded-lg flex flex-col items-center justify-center transition-all duration-200 ${
+            className={`relative h-10 w-10 mx-auto rounded-lg flex flex-col items-center justify-center transition-colors duration-100 ${
               !day
                 ? 'bg-transparent border-transparent'
                 : isFuture
